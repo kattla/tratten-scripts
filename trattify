@@ -78,7 +78,7 @@ sub table_body {
         $rapporteur = &next_bare if /Display the reporter or co-reporter/;
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
-      my $monitored = "[" . $monitored{$id} . " monitored]" if $monitored{$id};
+      my $monitored = "[" . $monitored{$id} . " $1]" if $monitored{$id} =~ /\/([^\/]+)\.html$/;
       print OUT "|-\n";
       print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
     }
