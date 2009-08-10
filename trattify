@@ -9,7 +9,32 @@ our $table_header = "{| border='1' cellspacing='0' class='wikitable sortable'
 ! oeil link / tratten page !! stage reached !! procedure !! stage !! name !! committee !! rapporteur !! COM number !! monitored\n";
 our $table_footer = "|}\n";
 
-our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720, 800, 900);
+our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
+
+our %monitored;
+
+sub get_monitored {
+  open my $F, "changedetection.account";
+
+  chomp(my $email = <$F>);
+  chomp(my $password = <$F>);
+
+  my $args = "-# --cookie cookies --cookie-jar cookies";
+  my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
+
+  print "Logging in to changedetection...\n";
+  `curl $args --url http://www.changedetection.com/index.html`;
+  $_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
+
+  my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
+  for (@matches) {
+    /href="([^"]+)" title="([^ ]+)/ or die;
+    $monitored{$2} = "http://www.changedetection.com$1";
+  }
+  my $number_monitored = keys %monitored;
+  print "$number_monitored pages are monitored.\n";
+}
+
 our $stageId;
 our $next_index;
 our $number_results;
@@ -17,7 +42,7 @@ our $stage_reached;
 
 sub get_page {
   my $form = "-d 'xpath=/oeil/search/procstage/stage' -d 'scope=stage' -d 'countEStat=true' -d 'startIndex=$next_index' -d 'stageId=$stageId' -d 'pageSize=50'";
-  my @body = `curl $form --url http://www.europarl.europa.eu/oeil/FindByStage.do`;
+  my @body = `curl -# $form --url http://www.europarl.europa.eu/oeil/FindByStage.do`;
   while (@body) {
     $_ = shift @body;
     if (/<span class="number_results">(\d+)<\/span>/) {
@@ -53,12 +78,16 @@ sub table_body {
         $rapporteur = &next_bare if /Display the reporter or co-reporter/;
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
+      my $monitored = "[" . $monitored{$id} . " monitored]" if $monitored{$id};
       print OUT "|-\n";
-      print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || not yet implemented\n";
+      print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
     }
   }
 }
 
+&get_monitored;
+
+print "Getting oeil-pages...\n";
 print OUT $table_header;
 while (@stageId) {
   $stageId = shift @stageId;
@@ -67,7 +96,10 @@ while (@stageId) {
   while ($next_index <= $number_results) {
     @data = &get_page;
     &table_body;
+    print "Waiting 3 seconds between pages for courtesy.\n";
     sleep 3;
   }
 }
 print OUT $table_footer;
+
+print "Done.\n";
