@@ -2,7 +2,7 @@
 
 use strict;
 
-open my $F, "changedetection.account";
+open my $F, "changedetection.account" or die;
 
 chomp(my $email = <$F>);
 chomp(my $password = <$F>);

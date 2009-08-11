@@ -14,7 +14,7 @@ our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720)
 our %monitored;
 
 sub get_monitored {
-  open my $F, "changedetection.account";
+  open my $F, "changedetection.account" or die;
 
   chomp(my $email = <$F>);
   chomp(my $password = <$F>);
