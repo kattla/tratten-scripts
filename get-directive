@@ -10,6 +10,7 @@ our %vocab = (
     source => "Source",
     basis => "BASIS",
     recitals => "RECITALS",
+    articles => "ARTICLES",
     chapter => "CHAPTER",
     annex => "ANNEX",
     article => "Article",
@@ -18,6 +19,7 @@ our %vocab = (
     source => "Källa",
     basis => "GRUND",
     recitals => "SKÄL",
+    articles => "ARTIKLAR",
     chapter => "KAPITEL",
     annex => "BILAGA",
     article => "Artikel",
@@ -50,11 +52,12 @@ s/<p>/\n/g;
 s/<\/p>/\n/g;
 s/^.+?\n{4}//s;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
-s/^\(1\)/==$vocab{recitals}==\n(1)/m;
 s/^\((\d+)\)\s*/===rec $1===\n/gm;
-s/^$vocab{chapter} (\w+)$/==$vocab{chapter} $1==/gmi;
-s/^$vocab{annex}$/==$vocab{annex}==/gmi;
-s/^$vocab{annex} (\w+)$/==$vocab{annex} $1==/gmi;
-s/^$vocab{article} (\d+)$/===art $1===/gmi;
+s/^(===rec 1===)$/==$vocab{recitals}==\n$1/m;
+s/^$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
+s/^$vocab{annex}\s*$/==$vocab{annex}==/gmi;
+s/^$vocab{annex}\s+(\w+)\s*$/==$vocab{annex} $1==/gmi;
+s/^$vocab{article}\s+(\d+)\s*$/===art $1===/gmi;
+s/^(===art 1===)$/==$vocab{articles}==\n$1/m;
 print "$vocab{source}: $url\n----\n\n==$vocab{basis}==\n";
 print;
