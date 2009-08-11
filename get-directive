@@ -41,8 +41,15 @@ die "No vocabulary defined for language $lang" unless $vocab{$lang};
 
 $year = "19$year" if $year < 100;
 $num = sprintf "%04d",$num;
-our $url = "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}L$num:$lang:HTML";
-$_ = `curl --url $url`;
+our @urls =
+  ("http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}L$num:$lang:HTML",
+   "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}D$num:$lang:HTML");
+our $url;
+do {
+  $url = shift @urls or die "No working url";
+  print STDERR "$url\n";
+  $_ = `curl --url $url`;
+} until /<title>/;
 
 /^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
 print "'''$1'''\n----\n";
