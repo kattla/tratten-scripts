@@ -46,11 +46,11 @@ $_ = `curl --url $url`;
 
 /^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
 print "'''$1'''\n----\n";
-/<TXT_TE>\n(.*)\n<\/TXT_TE>/s or die;
+/<TXT_TE>\s*(.*)\s*<\/TXT_TE>/s or die;
 $_ = $1;
 s/<p>/\n/g;
 s/<\/p>/\n/g;
-s/^.+?\n{4}//s;
+#s/^.+?\n{4}//s;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
 s/^$vocab{article}\s+(\d+)\s*$/===art $1===/gmi;
 /^(===art 1===)$/mp;
