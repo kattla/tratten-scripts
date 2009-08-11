@@ -59,6 +59,7 @@ sub get_page {
 
   
 our @data;
+our $counter = 0;
 
 sub next_bare { while (@data) { $_ = shift @data; return $1 if /^\s*(\w.*)$/; } }
 
@@ -79,6 +80,7 @@ sub table_body {
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
       my $monitored = "[" . $monitored{$id} . " $1]" if $monitored{$id} =~ /\/([^\/]+)\.html$/;
+      $counter += 1;
       print OUT "|-\n";
       print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
     }
@@ -101,5 +103,9 @@ while (@stageId) {
   }
 }
 print OUT $table_footer;
+
+chomp(my $date = `date -u +%F`);
+my $number_monitored = keys %monitored;
+print OUT "\nRetrieved $counter rows of data at $date. Number of dossiers monitored: $number_monitored.\n";
 
 print "Done.\n";
