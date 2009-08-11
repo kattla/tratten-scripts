@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+use strict;
+
+open my $F, "changedetection.account";
+
+chomp(my $email = <$F>);
+chomp(my $password = <$F>);
+
+my $args = "-# --cookie cookies --cookie-jar cookies";
+my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
+
+`curl $args --url http://www.changedetection.com/index.html`;
+$_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
+
+my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
+for (@matches) {
+  /href="([^"]+)" title="([^ ]+)/ or die;
+  print "$2\n";
+}
