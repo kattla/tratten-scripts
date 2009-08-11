@@ -29,7 +29,7 @@ our ($lang, $year, $num);
 while (@ARGV) {
   $_ = shift;
   if (/^[a-zA-Z]{2}$/) { $lang = "\U$_\E" }
-  elsif (/^(20\d\d)\/(\d\d)\/E[CG]$/) { ($year, $num) = ($1,$2) }
+  elsif (/^(\d+)\/(\d+)\/E?E[CGK]$/) { ($year, $num) = ($1,$2) }
   else { die "Unrecognized argument"}
 }
 
@@ -37,7 +37,9 @@ die "Missing argument" unless $lang and $year and $num;
 die "No vocabulary defined for language $lang" unless $vocab{$lang};
 %vocab = %{$vocab{$lang}};
 
-our $url = "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}L00$num:$lang:HTML";
+$year = "19$year" if $year < 100;
+$num = sprintf "%04d",$num;
+our $url = "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}L$num:$lang:HTML";
 $_ = `curl --url $url`;
 
 /^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
