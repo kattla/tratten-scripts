@@ -61,6 +61,7 @@ s/<\/p>/\n/g;
 #s/^.+?\n{4}//s;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
 s/^$vocab{article}\s+(\d+)\s*$/===art $1===/gmi;
+s/^$vocab{article}\s+(\d+)\s+(.*?)\s*$/===art $1===\n$2\n/gmi;
 /^(===art 1===)$/mp;
 ($_, my $tmp) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
 s/^\((\d+)\)\s*/===rec $1===\n/gm;
