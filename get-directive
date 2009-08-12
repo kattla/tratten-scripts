@@ -26,16 +26,17 @@ our %vocab = (
   },
 );
 
-our ($lang, $year, $num);
+our ($lang, $year, $num, $url);
 
 while (@ARGV) {
   $_ = shift;
   if (/^[a-zA-Z]{2}$/) { $lang = "\U$_\E" }
   elsif (/^(\d+)\/(\d+)\/E?E[CGK]$/) { ($year, $num) = ($1,$2) }
+  elsif (/^(http:.*)$/) { $url = $1; }
   else { die "Unrecognized argument"}
 }
 
-die "Missing argument" unless $lang and $year and $num;
+die "Missing argument" unless $lang and (($year and $num) or $url);
 die "No vocabulary defined for language $lang" unless $vocab{$lang};
 %vocab = %{$vocab{$lang}};
 
@@ -44,7 +45,7 @@ $num = sprintf "%04d",$num;
 our @urls =
   ("http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}L$num:$lang:HTML",
    "http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:3${year}D$num:$lang:HTML");
-our $url;
+@urls = $url if $url;
 do {
   $url = shift @urls or die "No working url";
   print STDERR "$url\n";
