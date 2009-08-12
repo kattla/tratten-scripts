@@ -58,20 +58,26 @@ do {
 print "'''$1'''\n----\n";
 /<TXT_TE>\s*(.*)\s*<\/TXT_TE>/s or die;
 $_ = $1;
+
 s/<p>/\n/g;
 s/<\/p>/\n/g;
-#s/^.+?\n{4}//s;
+s/\n\n\n+/\n\n/gs;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
-s/^$vocab{article}\s+(\d+)\s*$/===$vocab{article} $1===/gmi;
-s/^$vocab{article}\s+(\d+)\s+(.*?)\s*$/===$vocab{article} $1===\n$2\n/gmi;
+
+s/^\s*$vocab{article}\s+(\d+)\s*$/===$vocab{article} $1===/gmi;
+s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/===$vocab{article} $1===\n''$2''\n/gmi;
+s/^\s*$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
+s/^\s*$vocab{annex}\s*$/==$vocab{annex}==/gmi;
+s/^\s*$vocab{annex}\s+(\w+)\s*$/==$vocab{annex} $1==/gmi;
+
 /^(===$vocab{article} 1===)$/mp;
-($_, my $tmp) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
-s/^\((\d+)\)\s*/===$vocab{recital} $1===\n/gm;
-s/^(\d+)\.\s*/===$vocab{recital} $1===\n/gm;
-s/^(===$vocab{recital} 1===)$/==$vocab{recitals}==\n$1/m;
-$_ .= "==$vocab{articles}==\n" . $tmp;
-s/^$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
-s/^$vocab{annex}\s*$/==$vocab{annex}==/gmi;
-s/^$vocab{annex}\s+(\w+)\s*$/==$vocab{annex} $1==/gmi;
+(my $pre_articles, $_) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
+
+$pre_articles =~ s/^\s*\((\d+)\)\s+/===$vocab{recital} $1===\n/gm;
+$pre_articles =~ s/^\s*(\d+)\.\s+/===$vocab{recital} $1===\n/gm;
+$pre_articles =~ s/^(===$vocab{recital} 1===)$/==$vocab{recitals}==\n$1/m;
+
 print "$vocab{source}: $url\n----\n\n==$vocab{basis}==\n";
-print;
+print $pre_articles;
+print "==$vocab{articles}==\n";
+print $_;
