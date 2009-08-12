@@ -63,6 +63,7 @@ s/^$vocab{article}\s+(\d+)\s*$/===art $1===/gmi;
 /^(===art 1===)$/mp;
 ($_, my $tmp) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
 s/^\((\d+)\)\s*/===rec $1===\n/gm;
+s/^(\d+)\.\s*/===rec $1===\n/gm;
 s/^(===rec 1===)$/==$vocab{recitals}==\n$1/m;
 $_ .= "==$vocab{articles}==\n" . $tmp;
 s/^$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
