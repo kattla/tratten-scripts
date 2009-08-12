@@ -13,6 +13,7 @@ our %vocab = (
     articles => "ARTICLES",
     chapter => "CHAPTER",
     annex => "ANNEX",
+    recital => "Recital",
     article => "Article",
   },
   SV => {
@@ -22,6 +23,7 @@ our %vocab = (
     articles => "ARTIKLAR",
     chapter => "KAPITEL",
     annex => "BILAGA",
+    recital => "Skäl",
     article => "Artikel",
   },
 );
@@ -60,13 +62,13 @@ s/<p>/\n/g;
 s/<\/p>/\n/g;
 #s/^.+?\n{4}//s;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
-s/^$vocab{article}\s+(\d+)\s*$/===art $1===/gmi;
-s/^$vocab{article}\s+(\d+)\s+(.*?)\s*$/===art $1===\n$2\n/gmi;
-/^(===art 1===)$/mp;
+s/^$vocab{article}\s+(\d+)\s*$/===$vocab{article} $1===/gmi;
+s/^$vocab{article}\s+(\d+)\s+(.*?)\s*$/===$vocab{article} $1===\n$2\n/gmi;
+/^(===$vocab{article} 1===)$/mp;
 ($_, my $tmp) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
-s/^\((\d+)\)\s*/===rec $1===\n/gm;
-s/^(\d+)\.\s*/===rec $1===\n/gm;
-s/^(===rec 1===)$/==$vocab{recitals}==\n$1/m;
+s/^\((\d+)\)\s*/===$vocab{recital} $1===\n/gm;
+s/^(\d+)\.\s*/===$vocab{recital} $1===\n/gm;
+s/^(===$vocab{recital} 1===)$/==$vocab{recitals}==\n$1/m;
 $_ .= "==$vocab{articles}==\n" . $tmp;
 s/^$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
 s/^$vocab{annex}\s*$/==$vocab{annex}==/gmi;
