@@ -66,18 +66,18 @@ s/<\/p>/\n/g;
 s/\n\n\n+/\n\n/gs;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
 
-s/^\s*$vocab{article}\s+(\d+)\s*$/===$vocab{article} $1===/gmi;
-s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/===$vocab{article} $1===\n''$2''\n/gmi;
-s/^\s*$vocab{chapter}\s+(\w+)\s*$/==$vocab{chapter} $1==/gmi;
-s/^\s*$vocab{annex}\s*$/==$vocab{annex}==/gmi;
-s/^\s*$vocab{annex}\s+(\w+)\s*$/==$vocab{annex} $1==/gmi;
+s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
+s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
+s/^\s*$vocab{chapter}\s+(\w+)\s*$/\n==$vocab{chapter} $1==/gmi;
+s/^\s*$vocab{annex}\s*$/\n==$vocab{annex}==/gmi;
+s/^\s*$vocab{annex}\s+(\w+)\s*$/\n==$vocab{annex} $1==/gmi;
 
 /^===$vocab{article} 1===$/mp;
 (my $pre_articles, $_) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
 
-$pre_articles =~ s/^\s*\((\d+)\)\s+/===$vocab{recital} $1===\n/gm;
-$pre_articles =~ s/^\s*(\d+)\.\s+/===$vocab{recital} $1===\n/gm;
-$pre_articles =~ s/^(===$vocab{recital} 1===)$/==$vocab{recitals}==\n$1/m;
+$pre_articles =~ s/^\s*\((\d+)\)\s+/\n===$vocab{recital} $1===\n/gm;
+$pre_articles =~ s/^\s*(\d+)\.\s+/\n===$vocab{recital} $1===\n/gm;
+$pre_articles =~ s/^(===$vocab{recital} 1===)$/\n==$vocab{recitals}==\n$1/m;
 
 our $done;
 while (/(\n\s*\(\d+\)\s+[^\n]*)+/sp) {
