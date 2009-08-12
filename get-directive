@@ -79,5 +79,5 @@ $pre_articles =~ s/^(===$vocab{recital} 1===)$/==$vocab{recitals}==\n$1/m;
 
 print "$vocab{source}: $url\n----\n\n==$vocab{basis}==\n";
 print $pre_articles;
-print "==$vocab{articles}==\n";
+print "==$vocab{articles}==\n" unless /^==$vocab{chapter} /m;
 print $_;
