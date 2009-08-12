@@ -65,6 +65,7 @@ s/<p>/\n/g;
 s/<\/p>/\n/g;
 s/\n\n\n+/\n\n/gs;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
+s/^\s*-\s+(.*)$/\n* $1/gm;
 
 s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
 s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
@@ -90,6 +91,46 @@ while (/(\n\s*\(\d+\)\s+[^\n]*)+/sp) {
   $done =~ s/\((\d+)\)/<ref>$refs[$1]<\/ref>/g;
 }
 $_ = $done . $_;
+
+our @stack;
+our $accu;
+
+sub lvl {
+  local $_ = shift @_;
+  return 1 if /^[A-Z]+$/;
+  return 2 if /^[1-9]+$/;
+  #return 3 if /^[a-z]+$/;
+  die;
+}
+
+sub end {
+  die unless @stack;
+  shift @stack;
+  $accu .= "</li></ol>\n";
+}
+
+for (split /^/) {
+  if (/^\s*([A1])[.)]\s+(.*)$/) {
+    &end while $stack[0] >= &lvl($1);
+    unshift @stack, &lvl($1);
+    if (&lvl($1) == 1) { $accu .= "<ol style=\"list-style-type:upper-latin\">\n<li>'''$2'''" }
+    elsif (&lvl($1) == 2) { $accu .= "<ol>\n<li>$2" }
+    #elsif (&lvl($1) == 3) { $accu .= "<ol style=\"list-style-type:lower-latin\">\n<li>$2" }
+    else { die }
+  }
+  elsif (/^\s*([A-Z1-9])[.)]\s+(.*)$/) {
+    if (grep { $_ == &lvl($1) } @stack) {
+      &end while $stack[0] != &lvl($1);
+      if (&lvl($1) == 1) { $accu .= "</li><li>'''$2'''" }
+      else { $accu .= "</li><li>$2" }
+    }
+    else { $accu .= $_ }
+  }
+  elsif (/^==/) { &end while @stack; $accu .= $_ }
+  else { $accu .= $_ }
+}
+&end while @stack;
+$_ = $accu;
 
 print "$vocab{source}: $url\n----\n\n==$vocab{basis}==\n";
 print $pre_articles;
