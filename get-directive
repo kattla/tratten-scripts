@@ -69,8 +69,6 @@ s/\n\n\n+/\n\n/gs;
 s/(\d+\/\d+\/E?E[CGK])/[[$1]]/g;
 s/^\s*-\s+(.*)$/\n* $1/gm;
 
-s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
-s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
 s/^\s*$vocab{chapter}\s+(\w+)\s*$/\n==$vocab{chapter} $1==/gmi;
 s/^\s*$vocab{annex}\s*$/\n==$vocab{annex}==/gmi;
 s/^\s*$vocab{annex}\s+(\w+)\s*$/\n==$vocab{annex} $1==/gmi;
@@ -79,6 +77,8 @@ s/^\s*$vocab{annex}\s+(\w+)\s*$/\n==$vocab{annex} $1==/gmi;
 ($_, our $annex) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
 
 $annex =~ s/^\s*($vocab{part}\s+\w+:\s+.*)$/\n====$1====/gmi;
+s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
+s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
 
 /^===$vocab{article} 1===$/mp or die;
 ($_, our $articles) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
