@@ -73,10 +73,12 @@ s/^\s*$vocab{chapter}\s+(\w+)\s*$/\n==$vocab{chapter} $1==/gmi;
 s/^\s*$vocab{annex}\s*$/\n==$vocab{annex}==/gmi;
 s/^\s*$vocab{annex}\s+(\w+)\s*$/\n==$vocab{annex} $1==/gmi;
 
-/^==$vocab{annex}/mp or die;
-($_, our $annex) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
+our $annex;
+if (/^==$vocab{annex}/mp) {
+  ($_, $annex) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
+  $annex =~ s/^\s*($vocab{part}\s+\w+:\s+.*)$/\n====$1====/gmi;
+}
 
-$annex =~ s/^\s*($vocab{part}\s+\w+:\s+.*)$/\n====$1====/gmi;
 s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
 s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
 
