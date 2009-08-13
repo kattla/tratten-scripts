@@ -87,7 +87,7 @@ while (/(\n\s*\(\d+\)\s+[^\n]*)+/sp) {
   $_ = ${^POSTMATCH};
   my $body = ${^MATCH};
   $refs[$1] = $2 while $body =~ /^\s*\((\d+)\)\s+(.*)$/gm;
-  $pre_articles =~ s/\((\d+)\)/<ref>$refs[$1]<\/ref>/g;
+  $pre_articles =~ s/\((\d+)\)/$refs[$1] ? "<ref>$refs[$1]<\/ref>" : $&/ge;
   $done =~ s/\((\d+)\)/<ref>$refs[$1]<\/ref>/g;
 }
 $_ = $done . $_;
