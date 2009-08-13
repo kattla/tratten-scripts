@@ -81,14 +81,16 @@ $pre_articles =~ s/^\s*(\d+)\.\s+/\n===$vocab{recital} $1===\n/gm;
 $pre_articles =~ s/^(===$vocab{recital} 1===)$/\n==$vocab{recitals}==\n$1/m;
 
 our $done;
-while (/(\n\s*\(\d+\)\s+[^\n]*)+/sp) {
+our ($L,$R) = ("(",")");
+($L,$R) = ("[","]") if /^\s*\[\d+\]\s+/m;
+while (/(\n\s*\Q$L\E\d+\Q$R\E\s+[^\n]*)+/sp) {
   my @refs = ();
   $done .= ${^PREMATCH} . "\n";
   $_ = ${^POSTMATCH};
   my $body = ${^MATCH};
-  $refs[$1] = $2 while $body =~ /^\s*\((\d+)\)\s+(.*)$/gm;
-  $pre_articles =~ s/\((\d+)\)/$refs[$1] ? "<ref>$refs[$1]<\/ref>" : $&/ge;
-  $done =~ s/\((\d+)\)/$refs[$1] ? "<ref>$refs[$1]<\/ref>" : $&/ge;
+  $refs[$1] = $2 while $body =~ /^\s*\Q$L\E(\d+)\Q$R\E\s+(.*)$/gm;
+  $pre_articles =~ s/\Q$L\E(\d+)\Q$R\E/$refs[$1] ? "<ref>$refs[$1]<\/ref>" : $&/ge;
+  $done =~ s/\Q$L\E(\d+)\Q$R\E/$refs[$1] ? "<ref>$refs[$1]<\/ref>" : $&/ge;
 }
 $_ = $done . $_;
 
