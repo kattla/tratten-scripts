@@ -49,7 +49,7 @@ our ($lang, $year, $num, $url);
 while (@ARGV) {
   $_ = shift;
   if (/^[a-zA-Z]{2}$/) { $lang = "\U$_\E" }
-  elsif (/^(\d+)\/(\d+)\/E[CGK]$/) { ($year, $num) = ($1,$2) }
+  elsif (/^(\d+)\/(\d+)\/[A-Z]{2}$/) { ($year, $num) = ($1,$2) }
   elsif (/^(http:.*)$/) { $url = $1; }
   else { die "Unrecognized argument"}
 }
@@ -79,7 +79,7 @@ s/<p>/\n/g;
 s/<\/p>/\n/g;
 s/^\s*/\n/gm;
 s/\n\n\n+/\n\n/gs;
-s/(\d+\/\d+\/E[CGK])/[[$1]]/g;
+s/(\d+\/\d+\/[A-Z]{2})/[[$1]]/g;
 s/^\s*-\s+(.*)$/\n* $1/gm;
 
 s/^\s*$vocab{chapter}\s+(\w+)\s*$/\n==$vocab{chapter} $1==/gmi;
