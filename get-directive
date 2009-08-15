@@ -30,6 +30,18 @@ our %vocab = (
     article => "Artikel",
     references => "Referenser",
   },
+  IT => {
+    source => "Fonte",
+    basis => "BASE",
+    recitals => "RECITAL",
+    articles => "ARTICOLI",
+    chapter => "CAPITOLO",
+    annex => "ALLEGATO",
+    part => "Parte",
+    recital => "Recital",
+    article => "Articolo",
+    references => "Riferimenti",
+  },
 );
 
 our ($lang, $year, $num, $url);
