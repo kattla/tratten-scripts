@@ -15,6 +15,7 @@ our %vocab = (
     annex => "ANNEX",
     part => "Part",
     recital => "Recital",
+    article1 => undef,
     article => "Article",
     references => "References",
   },
@@ -27,6 +28,7 @@ our %vocab = (
     annex => "BILAGA",
     part => "Del",
     recital => "Skäl",
+    article1 => undef,
     article => "Artikel",
     references => "Referenser",
   },
@@ -39,8 +41,22 @@ our %vocab = (
     annex => "ALLEGATO",
     part => "Parte",
     recital => "Recital",
+    article1 => undef,
     article => "Articolo",
     references => "Riferimenti",
+  },
+  FR => {
+    source => "Source",
+    basis => "BASE",
+    recitals => "CONSIDÉRANTS",
+    articles => "ARTICLES",
+    chapter => "CHAPITRE",
+    annex => "ANNEXE",
+    part => "Partie",
+    recital => "Considérant",
+    article1 => "Article premier",
+    article => "Article",
+    references => "Références",
   },
 );
 
@@ -92,10 +108,11 @@ if (/^==$vocab{annex}/mp) {
   $annex =~ s/^\s*($vocab{part}\s+\w+:\s+.*)$/\n====$1====/gmi;
 }
 
+s/^\s*$vocab{article1}\s*$/\n===$vocab{article1}===/gmi if defined $vocab{article1};
 s/^\s*$vocab{article}\s+(\d+)\s*$/\n===$vocab{article} $1===/gmi;
 s/^\s*$vocab{article}\s+(\d+)\s+(.*?)\s*$/\n===$vocab{article} $1===\n''$2''\n/gmi;
 
-/^===$vocab{article} 1===$/mp or die;
+/^===($vocab{article} 1|$vocab{article1})===$/mp or die;
 ($_, our $articles) = (${^PREMATCH}, ${^MATCH} . ${^POSTMATCH});
 
 s/^\s*\((\d+)\)\s+/\n===$vocab{recital} $1===\n/gm;
