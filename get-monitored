@@ -13,8 +13,12 @@ my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monito
 `curl $args --url http://www.changedetection.com/index.html`;
 $_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
 
+print "{| border='1' cellspacing='0' class='wikitable sortable'\n! tratten link !! summary !! log file\n";
+
 my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
 for (@matches) {
-  /href="([^"]+)" title="([^ ]+)/ or die;
-  print "$2\n";
+  /href="([^"]+)" title="([^ ]+)\s+([^"]+)/ or die;
+  print "|-\n| [[$2]] || $3 || [http://www.changedetection.com$1]\n";
 }
+
+print "|}\n";
