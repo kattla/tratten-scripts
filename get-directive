@@ -58,6 +58,19 @@ our %vocab = (
     article => "Article",
     references => "Références",
   },
+  EL => {
+    source => "Πηγή",
+    basis => "ΒΑΣΗ",
+    recitals => "ΑΙΤΙΟΛΟΓΙΚΟ",
+    articles => "ΑΡΘΡΑ",
+    chapter => "ΚΕΦΑΛΑΙΟ",
+    annex => "ΠΑΡΑΡΤΗΜΑ",
+    part => "Μέρος",
+    recital => "Αιτιολογική",
+    article1 => undef,
+    article => "Άρθρο",
+    references => "Αναφορές",
+  },
 );
 
 our ($lang, $year, $num, $url);
