@@ -127,8 +127,7 @@ do {
   utf8::decode($_ = `curl --url $url`) or die;
 } until /<title>/;
 
-/^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
-print "'''$1'''\n----\n";
+print "'''$1'''\n----\n" if /^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
 /<TXT_TE>\s*(.*)\s*<\/TXT_TE>/s or die;
 $_ = $1;
 
