@@ -86,6 +86,19 @@ our %vocab = (
     article => "Articolul",
     references => "Referinţe",
   },
+  BG => {
+    source => "Източник",
+    basis => "основа",
+    recitals => "съображения",
+    articles => "членове",
+    chapter => "глава",
+    annex => "приложение",
+    part => "част",
+    recital => "съображения",
+    article1 => undef,
+    article => "Член",
+    references => "Справки",
+  },
 );
 
 our ($lang, $year, $num, $url);
