@@ -6,6 +6,7 @@ open my $F, "changedetection.account" or die;
 
 chomp(my $email = <$F>);
 chomp(my $password = <$F>);
+die("Need email & password each on its own line, in the changedetection.account file. Quitting.") unless $email and $password;
 
 my $args = "-# --cookie cookies --cookie-jar cookies";
 my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";

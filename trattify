@@ -30,7 +30,7 @@ sub get_monitored {
     my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
     for (@matches) {
       /href="([^"]+)" title="([^ ]+)/ or die;
-      print STDERR "Warning: Referens number $2 is not unique!\n" if $monitored{$2};
+      print STDERR "Warning: Reference number $2 is not unique!\n" if $monitored{$2};
       $monitored{$2} = "http://www.changedetection.com$1";
     }
   }

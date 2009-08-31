@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # This script takes as argument a directive number on the form NNNN/NN/EC or
-# NNNN/NN/EG as well as a two letter language code.
+# NNNN/NN/EG as well as a two-letter language code.
 
 use strict;
 use utf8;
