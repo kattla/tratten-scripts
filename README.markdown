@@ -5,3 +5,7 @@
 ## Changedetection + MediaWiki = Tratten
 
 Staring at changed web pages in the European Union legislature web universe is a robot task, and so tratten-scripts is a project to automate that.
+
+## License
+
+MIT.
