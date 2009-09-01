@@ -2,6 +2,7 @@
 
 use strict;
 #use warnings;
+use Tratten::Monitored;
 
 open OUT, ">out.txt";
 
@@ -12,34 +13,6 @@ our $table_footer = "|}\n";
 our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
 
 our %monitored;
-
-sub get_monitored {
-  open my $F, "changedetection.account" or die;
-
-  chomp(my $email = <$F>);
-  chomp(my $password = <$F>);
-
-  my $args = "-# --cookie cookies --cookie-jar cookies";
-  my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
-
-  print "Logging in to changedetection...\n";
-  `curl $args --url http://www.changedetection.com/index.html`;
-  $_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
-
-  do {
-    my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
-    for (@matches) {
-      /href="([^"]+)" title="([^ ]+)/ or die;
-      print STDERR "Warning: Reference number $2 is not unique!\n" if $monitored{$2};
-      $monitored{$2} = "http://www.changedetection.com$1";
-    }
-  }
-  while (/<a href='(\/monitors.html\?rclstart=\d+)'>next<\/a>/
-         and ($_ = `curl $args --url http://www.changedetection.com$1`, 1));
-
-  my $number_monitored = keys %monitored;
-  print "$number_monitored pages are monitored.\n";
-}
 
 our $stageId;
 our $next_index;
@@ -85,7 +58,7 @@ sub table_body {
         $rapporteur = &next_bare if /Display the reporter or co-reporter/;
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
-      my $monitored = "[" . $monitored{$id} . " $1]" if $monitored{$id} =~ /\/([^\/]+)\.html$/;
+      my $monitored = "[" . $monitored{$id}->[0] . " $1]" if $monitored{$id}->[0] =~ /\/([^\/]+)\.html$/;
       $counter += 1;
       print OUT "|-\n";
       print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
@@ -93,7 +66,10 @@ sub table_body {
   }
 }
 
-&get_monitored;
+print "Logging in to changedetection...\n";
+%monitored = %{ &get_monitored };
+my $number_monitored = keys %monitored;
+print "$number_monitored pages are monitored.\n";
 
 print "Getting oeil-pages...\n";
 print OUT $table_header;
@@ -111,7 +87,6 @@ while (@stageId) {
 print OUT $table_footer;
 
 chomp(my $date = `date -u +%F`);
-my $number_monitored = keys %monitored;
 print OUT "\nRetrieved $counter rows of data at $date. Number of dossiers monitored: $number_monitored.\n";
 
 print "Done.\n";
