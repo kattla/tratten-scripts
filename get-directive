@@ -5,6 +5,9 @@
 
 use strict;
 use utf8;
+use Tratten::Misc;
+use Digest::MD5 qw(md5_hex);
+use Digest::SHA qw(sha1_hex sha256_hex);
 binmode STDOUT, ":utf8";
 
 our %vocab = (
@@ -114,7 +117,9 @@ our %vocab = (
   },
 );
 
+my $version_string = &get_version_string;
 our ($lang, $year, $num, $url);
+our ($md5, $sha1, $sha256);
 
 while (@ARGV) {
   $_ = shift;
@@ -137,7 +142,11 @@ our @urls =
 do {
   $url = shift @urls or die "No working url";
   print STDERR "$url\n";
-  utf8::decode($_ = `curl --url $url`) or die;
+  $_ = `curl --url $url` or die;
+  $md5 = md5_hex($_);
+  $sha1 = sha1_hex($_);
+  $sha256 = sha256_hex($_);
+  utf8::decode($_);
 } until /<title>/;
 
 print "'''$1'''\n----\n" if /^\s*<strong>\s*(\S.+\S)\s*<\/strong>\s*$/m;
@@ -233,3 +242,11 @@ $_ = $accu;
 print "$vocab{source}: $url\n----\n\n==$vocab{basis}==\n";
 print;
 print "==$vocab{references}==\n<references/>\n";
+print "\n\n----\n\n";
+chomp(my $date = `date -u +%F`);
+my $home = "http://github.com/kattla/tratten-scripts/";
+print "This page was generated on $date by $version_string, part of [$home tratten-scripts].\n\n";
+print "Source URL: $url\n\n";
+print "Source MD5sum: $md5\n\n";
+print "Source SHA1: $sha1\n\n";
+print "Source SHA256: $sha256\n\n";
