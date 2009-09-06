@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
-# This script takes as argument a directive number on the form NNNN/NN/EC or
-# NNNN/NN/EG as well as a two-letter language code.
+# This script takes two arguments:
+#   1. A two-letter language code.
+#   2. A directive number NNNN/NN/EC (or local variant) or an URL.
 
 use strict;
 use utf8;
@@ -12,6 +13,7 @@ binmode STDOUT, ":utf8";
 
 our %vocab = (
   EN => {
+    EC => "EC",
     source => "Source",
     basis => "BASIS",
     recitals => "RECITALS",
@@ -25,6 +27,7 @@ our %vocab = (
     references => "References",
   },
   SV => {
+    EC => "EG",
     source => "Källa",
     basis => "GRUND",
     recitals => "SKÄL",
@@ -38,6 +41,7 @@ our %vocab = (
     references => "Referenser",
   },
   DA => {
+    EC => "EF",
     source => "Kilde",
     basis => "GRUNDLAG",
     recitals => "BETRAGTNINGER",
@@ -51,6 +55,7 @@ our %vocab = (
     references => "Referencer",
   },
   IT => {
+    EC => "CE",
     source => "Fonte",
     basis => "BASE",
     recitals => "CONSIDERANDI",
@@ -64,6 +69,7 @@ our %vocab = (
     references => "Riferimenti",
   },
   FR => {
+    EC => "CE",
     source => "Source",
     basis => "BASE",
     recitals => "CONSIDÉRANTS",
@@ -77,6 +83,7 @@ our %vocab = (
     references => "Références",
   },
   EL => {
+    EC => "EK",
     source => "Πηγή",
     basis => "ΒΑΣΗ",
     recitals => "ΑΙΤΙΟΛΟΓΙΚΟ",
@@ -90,6 +97,7 @@ our %vocab = (
     references => "Αναφορές",
   },
   RO => {
+    EC => "EC",
     source => "SURSA",
     basis => "BASE",
     recitals => "RECITAL",
@@ -103,6 +111,7 @@ our %vocab = (
     references => "Referinţe",
   },
   BG => {
+    EC => "EC",
     source => "Източник",
     basis => "основа",
     recitals => "съображения",
@@ -131,6 +140,10 @@ while (@ARGV) {
 
 die "Missing argument" unless $lang and (($year and $num) or $url);
 die "No vocabulary defined for language $lang" unless $vocab{$lang};
+
+print join ' ', map { "[[\L$_\E:$year/$num/" . $vocab{$_}->{"EC"} . "]]" } keys %vocab;
+print "\n";
+
 %vocab = %{$vocab{$lang}};
 
 $year = "19$year" if $year < 100;
@@ -157,7 +170,7 @@ s/<p>/\n/g;
 s/<\/p>/\n/g;
 s/^\s*/\n/gm;
 s/\n\n\n+/\n\n/gs;
-s/\b(\d+\/\d+\/[A-Z]{2})\b/[[$1]]/g;
+s/\b(\d+\/\d+\/$vocab{EC})\b/[[$1]]/g;
 s/^\s*-\s+(.*)$/\n* $1/gm;
 
 s/^\s*$vocab{chapter}\s+(\w+)\s*$/\n==$vocab{chapter} $1==/gmi;
