@@ -97,7 +97,7 @@ our %vocab = (
     references => "Αναφορές",
   },
   RO => {
-    EC => "EC",
+    EC => "CE",
     source => "SURSA",
     basis => "BASE",
     recitals => "RECITAL",
@@ -111,7 +111,7 @@ our %vocab = (
     references => "Referinţe",
   },
   BG => {
-    EC => "EC",
+    EC => "ЕО",
     source => "Източник",
     basis => "основа",
     recitals => "съображения",
