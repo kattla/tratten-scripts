@@ -15,6 +15,7 @@ sub get_monitored {
   my $args = "-# --cookie cookies --cookie-jar cookies";
   my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
 
+  unlink 'cookies';
   `curl $args --url http://www.changedetection.com/index.html`;
   $_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
 
