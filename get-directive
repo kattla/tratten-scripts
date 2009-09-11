@@ -141,7 +141,7 @@ while (@ARGV) {
 die "Missing argument" unless $lang and (($year and $num) or $url);
 die "No vocabulary defined for language $lang" unless $vocab{$lang};
 
-print join ' ', map { "[[\L$_\E:$year/$num/" . $vocab{$_}->{"EC"} . "]]" } keys %vocab;
+print join ' ', map { $_ eq $lang ? "" : "[[\L$_\E:$year/$num/" . $vocab{$_}->{"EC"} . "]]" } keys %vocab;
 print "\n";
 
 %vocab = %{$vocab{$lang}};
