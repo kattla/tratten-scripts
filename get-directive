@@ -83,7 +83,7 @@ our %vocab = (
     references => "Références",
   },
   EL => {
-    EC => "EK",
+    EC => "ΕΚ",
     source => "Πηγή",
     basis => "ΒΑΣΗ",
     recitals => "ΑΙΤΙΟΛΟΓΙΚΟ",
