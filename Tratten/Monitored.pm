@@ -12,12 +12,11 @@ sub get_monitored {
   chomp(my $password = <$F>);
   die("Need email & password each on its own line, in the changedetection.account file. Quitting.") unless $email and $password;
 
-  my $args = "-# --cookie cookies --cookie-jar cookies";
+  my $args = "-# --sslv3";
   my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
 
-  unlink 'cookies';
-  `curl $args --url http://www.changedetection.com/index.html`;
-  $_ = `curl $args $form -L --url http://www.changedetection.com/login.html`;
+  `curl $args --cookie-jar cookies --url http://www.changedetection.com/index.html`;
+  $_ = `curl $args --cookie cookies $form -L --url http://www.changedetection.com/login.html`;
 
   my %ret;
 
