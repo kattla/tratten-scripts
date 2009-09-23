@@ -131,11 +131,11 @@ our ($lang, $year, $num, $url);
 our ($md5, $sha1, $sha256);
 
 while (@ARGV) {
-  $_ = shift;
+  utf8::decode($_ = shift);
   if (/^[a-zA-Z]{2}$/) { $lang = "\U$_\E" }
-  elsif (/^(\d+)\/(\d+)\/[A-Z]{2}$/) { ($year, $num) = ($1,$2) }
+  elsif (/^(\d+)\/(\d+)\/\p{IsUpper}{2}$/) { ($year, $num) = ($1,$2) }
   elsif (/^(http:.*)$/) { $url = $1; }
-  else { die "Unrecognized argument"}
+  else { die "Unrecognized argument: $_"}
 }
 
 die "Missing argument" unless $lang and (($year and $num) or $url);
