@@ -213,14 +213,12 @@ $_ = $done . $_;
 our @stack;
 our $accu;
 
-sub lvl {
-  local $_ = shift @_;
-  return 1 if /^[A-Z]+$/;
-  return 2 if /^\d+$/;
-  return 3 if /^[a-z]+$/;
-  return 4 if /^ι?([α-εζ-ι]|στ)$/ and $lang == "EL";
-  die;
-}
+our $lvl;
+
+our $li = qr/
+  [A-Z]+(?{$lvl=1})|\d+(?{$lvl=2})|[a-z]+(?{$lvl=3})
+ |(?(?{$lang eq "EL"})ι?(?:[α-εζ-ι]|στ)(?{$lvl=4})|(*FAIL))
+/xo;
 
 sub indent { "  " x (@stack * 2 - 1 + ($_[0] || 0)) }
 sub maybe_indent { $accu .= &indent(@_) if $accu =~ /\n$/s }
@@ -241,22 +239,26 @@ while (@lines and ($_ = shift @lines), 1) {
   if (/^\s*i\)\s+(.*)$/ and grep /^\s*ii\)\s+/, @lines[0..2]) {
     $accu .= $_
   }
-  elsif (/^\s*([A1a])[.)]\s+(.*)$/ or ($lang == "El" and /^\s*(α)\)\s+(.*)$/)) {
-    &chomps if $stack[0] >= &lvl($1);
-    &end while $stack[0] >= &lvl($1);
-    &maybe_indent(1);
-    unshift @stack, &lvl($1);
-    if (&lvl($1) == 1) { $accu .= "<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$2'''" }
-    elsif (&lvl($1) == 2 or &lvl($1) == 4) { $accu .= "<ol>\n" . &indent . "<li>$2" }
-    elsif (&lvl($1) == 3) { $accu .= "<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$2" }
-    else { die }
-  }
-  elsif ((/^\s*([A-Z0-9a-z]+)[.)]\s+(.*)$/ or ($lang == "El" and /^\s*(ι?(?:[α-εζ-ι]|στ))\)\s+(.*)$/)) and grep { $_ == &lvl($1) } @stack) {
-    &chomps;
-    &end while $stack[0] != &lvl($1);
-    &maybe_indent;
-    if (&lvl($1) == 1) { $accu .= "</li>\n" . &indent . "<li>'''$2'''" }
-    else { $accu .= "</li>\n" . &indent . "<li>$2" }
+  elsif (/^\s*(?|\(?($li)\)|($li)\.)\s+(.*)$/) {
+    my ($a,$b) = ($1,$2);
+    if ($a =~ /^[A1aα]$/) {
+      &chomps if $stack[0] >= $lvl;
+      &end while $stack[0] >= $lvl;
+      &maybe_indent(1);
+      unshift @stack, $lvl;
+      if ($lvl == 1) { $accu .= "<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$b'''" }
+      elsif ($lvl == 2 or $lvl == 4) { $accu .= "<ol>\n" . &indent . "<li>$b" }
+      elsif ($lvl == 3) { $accu .= "<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$b" }
+      else { die }
+    }
+    elsif (grep { $_ == $lvl } @stack) {
+      &chomps;
+      &end while $stack[0] != $lvl;
+      &maybe_indent;
+      if ($lvl == 1) { $accu .= "</li>\n" . &indent . "<li>'''$b'''" }
+      else { $accu .= "</li>\n" . &indent . "<li>$b" }
+    }
+    else { $accu .= $_ }
   }
   elsif (/^==/) { &chomps if @stack; &end while @stack; $accu .= $_ }
   else { $accu .= $_ }
