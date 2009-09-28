@@ -231,37 +231,49 @@ sub end {
 }
 
 sub chomps {
-  $accu =~ s/\n*$//s;
+  #$accu =~ s/(<br\/>|\s|\n)*$/$_[0]/s;
+  my $c = substr $accu, -1;
+  if ($c eq "\n" or $c eq " ") { chop $accu; goto &chomps }
+  elsif ($c eq ">" and substr($accu, -5) eq "<br/>") {
+    $accu = substr $accu, 0, -5;
+    goto &chomps;
+  }
+  else { $accu .= $_[0] if @_ }
 }
+
+my $should_nl = 0;
+sub accu { $accu .= $_[0]; $should_nl = 1; }
 
 our @lines = split /^/;
 while (@lines and ($_ = shift @lines), 1) {
-  if (/^\s*i\)\s+(.*)$/ and grep /^\s*ii\)\s+/, @lines[0..2]) {
-    $accu .= $_
-  }
+  if (/^\s*\(?i\)\s/ and grep /^\s*\(?ii\)\s+/, @lines[0..3]) { &accu(&indent(1) . $_) }
+  elsif (/^\s*\(?[iv]{2,}\)\s/) { &accu(&indent(1) . $_) } # assume roman
+  elsif (/^\s*\*\s/) { &chomps("\n") if @stack; &accu($_); $should_nl = 0; }
+  elsif (/^\s*$/) { $accu .= @stack ? (&indent(1) . "<br/>\n") : "\n" if $should_nl }
   elsif (/^\s*(?|\(?($li)\)|($li)\.)\s+(.*)$/) {
     my ($a,$b) = ($1,$2);
     if ($a =~ /^[A1aα]$/) {
-      &chomps if $stack[0] >= $lvl;
+      &chomps if @stack;
+      &accu("\n") if @stack and $stack[0] < $lvl;
       &end while $stack[0] >= $lvl;
       &maybe_indent(1);
       unshift @stack, $lvl;
-      if ($lvl == 1) { $accu .= "<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$b'''" }
-      elsif ($lvl == 2 or $lvl == 4) { $accu .= "<ol>\n" . &indent . "<li>$b" }
-      elsif ($lvl == 3) { $accu .= "<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$b" }
+      if ($lvl == 1) { &accu("<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$b'''\n") }
+      elsif ($lvl == 2 or $lvl == 4) { &accu("<ol>\n" . &indent . "<li>$b\n") }
+      elsif ($lvl == 3) { &accu("<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$b\n") }
       else { die }
     }
     elsif (grep { $_ == $lvl } @stack) {
       &chomps;
       &end while $stack[0] != $lvl;
       &maybe_indent;
-      if ($lvl == 1) { $accu .= "</li>\n" . &indent . "<li>'''$b'''" }
-      else { $accu .= "</li>\n" . &indent . "<li>$b" }
+      if ($lvl == 1) { &accu("</li>\n" . &indent . "<li>'''$b'''\n") }
+      else { &accu("</li>\n" . &indent . "<li>$b\n") }
     }
-    else { $accu .= $_ }
+    else { &accu(&indent(1) . $_) }
   }
-  elsif (/^==/) { &chomps if @stack; &end while @stack; $accu .= $_ }
-  else { $accu .= $_ }
+  elsif (/^==/) { &chomps if @stack; &end while @stack; &accu($_) }
+  else { &accu(&indent(1) . $_) }
 }
 &chomps if @stack;
 &end while @stack;
