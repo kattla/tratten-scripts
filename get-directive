@@ -238,37 +238,44 @@ sub chomps {
     $accu = substr $accu, 0, -5;
     goto &chomps;
   }
-  else { $accu .= $_[0] if @_ }
 }
 
 my $should_nl = 0;
-sub accu { $accu .= $_[0]; $should_nl = 1; }
+sub accu_ol { $accu .= $_[0]; $should_nl = 1; }
+sub accu_li { $accu .= $_[0]; $should_nl = 1; }
+sub accu {
+  if ($stack[0] == 3 and scalar @stack > 1) {
+    &chomps;
+    &end;
+  }
+  $accu .= $_[0]; $should_nl = 1;
+}
 
 our @lines = split /^/;
 while (@lines and ($_ = shift @lines), 1) {
   if (/^\s*\(?i\)\s/ and grep /^\s*\(?ii\)\s+/, @lines[0..3]) { &accu(&indent(1) . $_) }
   elsif (/^\s*\(?[iv]{2,}\)\s/) { &accu(&indent(1) . $_) } # assume roman
-  elsif (/^\s*\*\s/) { &chomps("\n") if @stack; &accu($_); $should_nl = 0; }
+  elsif (/^\s*\*\s/) { (&chomps, $accu .= "\n") if @stack; &accu($_); $should_nl = 0; }
   elsif (/^\s*$/) { $accu .= @stack ? (&indent(1) . "<br/>\n") : "\n" if $should_nl }
   elsif (/^\s*(?|\(?($li)\)|($li)\.)\s+(.*)$/) {
     my ($a,$b) = ($1,$2);
     if ($a =~ /^[A1aα]$/) {
       &chomps if @stack;
-      &accu("\n") if @stack and $stack[0] < $lvl;
+      $accu .= "\n" if @stack and $stack[0] < $lvl;
       &end while $stack[0] >= $lvl;
       &maybe_indent(1);
       unshift @stack, $lvl;
-      if ($lvl == 1) { &accu("<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$b'''\n") }
-      elsif ($lvl == 2 or $lvl == 4) { &accu("<ol>\n" . &indent . "<li>$b\n") }
-      elsif ($lvl == 3) { &accu("<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$b\n") }
+      if ($lvl == 1) { &accu_ol("<ol style=\"list-style-type:upper-latin\">\n" . &indent . "<li>'''$b'''\n") }
+      elsif ($lvl == 2 or $lvl == 4) { &accu_ol("<ol>\n" . &indent . "<li>$b\n") }
+      elsif ($lvl == 3) { &accu_ol("<ol style=\"list-style-type:lower-latin\">\n" . &indent . "<li>$b\n") }
       else { die }
     }
     elsif (grep { $_ == $lvl } @stack) {
       &chomps;
       &end while $stack[0] != $lvl;
       &maybe_indent;
-      if ($lvl == 1) { &accu("</li>\n" . &indent . "<li>'''$b'''\n") }
-      else { &accu("</li>\n" . &indent . "<li>$b\n") }
+      if ($lvl == 1) { &accu_li("</li>\n" . &indent . "<li>'''$b'''\n") }
+      else { &accu_li("</li>\n" . &indent . "<li>$b\n") }
     }
     else { &accu(&indent(1) . $_) }
   }
