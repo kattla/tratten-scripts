@@ -6,7 +6,8 @@ use base 'Exporter';
 our @EXPORT = qw(get_monitored);
 
 sub get_monitored {
-  open my $F, "changedetection.account" or die;
+  my $filename = "changedetection.account";
+  open my $F, $filename or die "Could not open file '$filename': $!";
 
   chomp(my $email = <$F>);
   chomp(my $password = <$F>);
