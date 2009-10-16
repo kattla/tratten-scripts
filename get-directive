@@ -241,10 +241,11 @@ sub chomps {
 }
 
 my $should_nl = 0;
-sub accu_ol { $accu .= $_[0]; $should_nl = 1; }
-sub accu_li { $accu .= $_[0]; $should_nl = 1; }
+my $extended_hack = 0;
+sub accu_ol { $accu .= $_[0]; $should_nl = 1; $extended_hack = 0 }
+sub accu_li { $accu .= $_[0]; $should_nl = 1; $extended_hack = 0 }
 sub accu {
-  if ($stack[0] == 3 and scalar @stack > 1) {
+  if (not $extended_hack and $stack[0] == 3 and scalar @stack > 1) {
     &chomps;
     &end;
   }
@@ -253,7 +254,7 @@ sub accu {
 
 our @lines = split /^/;
 while (@lines and ($_ = shift @lines), 1) {
-  if (/^\s*\(?i\)\s/ and grep /^\s*\(?ii\)\s+/, @lines[0..3]) { &accu(&indent(1) . $_) }
+  if (/^\s*\(?i\)\s/ and grep /^\s*\(?ii\)\s+/, @lines[0..3]) { $extended_hack = 1; &accu(&indent(1) . $_) }
   elsif (/^\s*\(?[iv]{2,}\)\s/) { &accu(&indent(1) . $_) } # assume roman
   elsif (/^\s*\*\s/) { (&chomps, $accu .= "\n") if @stack; &accu($_); $should_nl = 0; }
   elsif (/^\s*$/) { $accu .= @stack ? (&indent(1) . "<br/>\n") : "\n" if $should_nl }
