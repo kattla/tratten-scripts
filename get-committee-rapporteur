@@ -1,0 +1,68 @@
+#! /usr/bin/perl -w
+
+use strict;
+use warnings;
+use diagnostics;
+
+use File::Fetch;
+use LWP::Simple;
+
+my $ff_urls = File::Fetch->new (uri => 'http://www.erikjosefsson.eu/sites/default/files/urltabell3.txt');
+my $urls_file = $ff_urls->fetch (to => '/tmp');
+open my $fh_urls, $urls_file or die "Can't open $urls_file : $!";
+
+my %commities_abbr =
+(
+  'Foreign Affairs'                             => 'AFET',
+  'Human Rights'                                => 'DROI',
+  'Security and Defence'                        => 'SEDE',
+  'Development'                                 => 'DEVE',
+  'International Trade'                         => 'INTA',
+  'Budgets'                                     => 'BUDG',
+  'Budgetary Control'                           => 'CONT',
+  'Economic and Monetary Affairs'               => 'ECON',
+  'Employment and Social Affairs'               => 'EMPL',
+  'Environment, Public Health and Food Safety'  => 'ENVI',
+  'Industry, Research and Energy'               => 'ITRE',
+  'Internal Market and Consumer Protection'     => 'IMCO',
+  'Transport and Tourism'                       => 'TRAN',
+  'Regional Development'                        => 'REGI',
+  'Agriculture and Rural Development'           => 'AGRI',
+  'Fisheries'                                   => 'PECH',
+  'Culture and Education'                       => 'CULT',
+  'Legal Affairs'                               => 'JURI',
+  'Civil Liberties, Justice and Home Affairs'   => 'LIBE',
+  'Constitutional Affairs'                      => 'AFCO',
+  'Women\'s Rights and Gender Equality'         => 'FEMM',
+  'Petitions'                                   => 'PETI',
+  'Financial, Economic and Social Crisis'       => 'CRIS'
+);
+
+sub display_results
+{
+  my ($commitee, $MEP, $status) = @_;
+  chomp $commitee;
+  print '['.$commitee.'---->'.$commities_abbr{$commitee}.' ('.$status.') : '.$MEP.'] ';
+}
+
+while (<$fh_urls>)
+{
+  chomp;
+  my $url = $_;
+  print "$url : ";
+  my $page_content = get $url;
+  $page_content =~ m/\s(\S*?)<\/title>/;
+  print "$1\n";
+
+  while ($page_content =~ /<span>\s*.*?([\w\s]*)\(responsible\)\s*<\/span>\s*<\/td>\s*<td style="border-bottom: solid 1px #cccccc; border-right: solid 1px #cccccc;" nowrap="nowrap">\s*<br\/>(.*?)\s*<\/td>/ms)
+  {
+    display_results $1, $2, 'responsible';
+    $page_content =~ s/<br\/>$2//;
+  }
+  while ($page_content =~ /<span>\s*<i>.*?([\w\s]*)\(opinion\)<\/i>\s*<\/span>\s*<\/td>\s*<td style="border-bottom: solid 1px #cccccc; border-right: solid 1px #cccccc;" nowrap="nowrap">\s*<br\/>(.*?)\s*<\/td>/ms)
+  {
+    display_results $1, $2, 'opinion';
+    $page_content =~ s/<br\/>$2//;
+  }
+  print "\n";
+}
