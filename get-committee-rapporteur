@@ -4,12 +4,13 @@ use strict;
 use warnings;
 use diagnostics;
 
+use utf8;
+binmode STDOUT, ":utf8";
+
 use File::Fetch;
 use LWP::Simple;
 
-my $ff_urls = File::Fetch->new (uri => 'http://www.erikjosefsson.eu/sites/default/files/urltabell3.txt');
-my $urls_file = $ff_urls->fetch (to => '/tmp');
-open my $fh_urls, $urls_file or die "Can't open $urls_file : $!";
+my @urls = split /\n/, get 'http://www.erikjosefsson.eu/sites/default/files/urltabell3.txt';
 
 my %commities_abbr =
 (
@@ -41,11 +42,11 @@ my %commities_abbr =
 sub display_results
 {
   my ($commitee, $MEP, $status) = @_;
-  chomp $commitee;
-  print '['.$commitee.'---->'.$commities_abbr{$commitee}.' ('.$status.') : '.$MEP.'] ';
+  my $abbr = (defined $commities_abbr{$commitee} && $commities_abbr{$commitee}) || "NO-ABBR";
+  print '['.$commitee.'---->'.$abbr.' ('.$status.') : '.$MEP.'] ';
 }
 
-while (<$fh_urls>)
+for (@urls)
 {
   chomp;
   my $url = $_;
@@ -54,15 +55,9 @@ while (<$fh_urls>)
   $page_content =~ m/\s(\S*?)<\/title>/;
   print "$1\n";
 
-  while ($page_content =~ /<span>\s*.*?([\w\s]*)\(responsible\)\s*<\/span>\s*<\/td>\s*<td style="border-bottom: solid 1px #cccccc; border-right: solid 1px #cccccc;" nowrap="nowrap">\s*<br\/>(.*?)\s*<\/td>/ms)
+  while ($page_content =~ /<span>\s*(?:<i>)?.*?(\w[\w\s]*\w)\s+\((responsible|opinion)\)(?:<\/i>)?\s*<\/span>\s*<\/td>\s*<td [^>]*>\s*(?:<br\/>|&nbsp;)?(.*?)\s*<\/td>/msg)
   {
-    display_results $1, $2, 'responsible';
-    $page_content =~ s/<br\/>$2//;
-  }
-  while ($page_content =~ /<span>\s*<i>.*?([\w\s]*)\(opinion\)<\/i>\s*<\/span>\s*<\/td>\s*<td style="border-bottom: solid 1px #cccccc; border-right: solid 1px #cccccc;" nowrap="nowrap">\s*<br\/>(.*?)\s*<\/td>/ms)
-  {
-    display_results $1, $2, 'opinion';
-    $page_content =~ s/<br\/>$2//;
+    display_results $1, $3, $2;
   }
   print "\n";
 }
