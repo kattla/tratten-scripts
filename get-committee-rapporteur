@@ -11,7 +11,10 @@ binmode STDERR, ":utf8";
 use File::Fetch;
 use LWP::Simple;
 
-my @urls = split /\n/, get 'http://www.erikjosefsson.eu/sites/default/files/urltabell3.txt';
+use Tratten::Monitored;
+
+my %monitored = %{ &get_monitored };
+my @urls = map { $monitored{$_}->[2] } sort keys %monitored;
 
 my %commities = (
   'CODE' => 'Conciliation Committee',

@@ -22,11 +22,9 @@ sub get_monitored {
   my %ret;
 
   do {
-    my @matches = /<a href="\/log\/[^"]+" title="[^"]+"/g;
-    for (@matches) {
-      /href="([^"]+)" title="([^ ]+)\s+([^"]+)/ or die;
+    while (/<a href="(\/log\/[^"]+)" title="([^ ]+)\s+([^"]+)".+?href="([^"]+)"/g) {
       print STDERR "Warning: Reference number $2 is not unique!\n" if $ret{$2};
-      $ret{$2} = ["http://www.changedetection.com$1", $3];
+      $ret{$2} = ["http://www.changedetection.com$1", $3, $4];
     }
   } while (/<a href='(\/monitors\.html\?rclstart=\d+)'>next<\/a>/
            and ($_ = `curl $args --cookie cookies --url https://www.changedetection.com$1`, 1));
