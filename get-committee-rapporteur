@@ -74,7 +74,8 @@ sub display_results
 for (@urls) {
   %results = ();
   my $url = $_;
-  my $page_content = get $url;
+  my $page_content = get $url || (print "WARNING: Could not download $url\n$!\n", next);
+  unless ($page_content) { print STDERR "WARNING: Um.. should not happen... But anyway:\nCould not download $url\nSorry.\n"; next }
   $page_content =~ m/\s(\S*?)<\/title>/;
   my $name = $1;
   print "|-\n | [[$name]] ||";
