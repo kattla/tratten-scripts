@@ -14,7 +14,6 @@ use LWP::Simple;
 use Tratten::Monitored;
 
 my %monitored = %{ &get_monitored };
-my @urls = map { $monitored{$_}->[2] } sort keys %monitored;
 
 my %commities = (
   'CODE' => 'Conciliation Committee',
@@ -71,14 +70,15 @@ sub display_results
   print "\n";
 }
 
-for (@urls) {
+for (sort keys %monitored) {
   %results = ();
-  my $url = $_;
+  my ($chd_url, $summary, $url) = @{$monitored{$_}};
+  my $name = $_;
   my $page_content = get $url || (print "WARNING: Could not download $url\n$!\n", next);
   unless ($page_content) { print STDERR "WARNING: Um.. should not happen... But anyway:\nCould not download $url\nSorry.\n"; next }
   $page_content =~ m/\s(\S*?)<\/title>/;
-  my $name = $1;
-  print "|-\n | [[$name]] ||";
+  (print STDERR "WARNING: Monitored page $chd_url is $1 but is named $name!\n", $name = $1) if $name ne $1;
+  print "|-\n | [[$name]] || $summary";
 
   while ($page_content =~ /
       <div\s[^>]*>\s*(?:<i>)?(?<comm>[^(]*?)\s+\((?<status>responsible|opinion)\)(?:<\/i>)?\s*<\/div>
