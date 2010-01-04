@@ -258,7 +258,7 @@ while (@lines and ($_ = shift @lines), 1) {
   elsif (/^\s*\(?[iv]{2,}\)\s/) { &accu(&indent(1) . $_) } # assume roman
   elsif (/^\s*\*\s/) { (&chomps, $accu .= "\n") if @stack; &accu($_); $should_nl = 0; }
   elsif (/^\s*$/) { $accu .= @stack ? (&indent(1) . "<br/>\n") : "\n" if $should_nl }
-  elsif (/^\s*(?|\(?($li)\)|($li)\.)\s+(.*)$/) {
+  elsif (/^\s*(?|\(?($li)\)|($li)\.)\s*(.*)$/) {
     my ($a,$b) = ($1,$2);
     if ($a =~ /^[A1aα]$/) {
       &chomps if @stack;
