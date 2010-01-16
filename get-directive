@@ -168,8 +168,8 @@ $_ = $1;
 
 s/<p>/\n/g;
 s/<\/p>/\n/g;
-s/^\s*/\n/gm;
-s/\n\n\n+/\n\n/gs;
+s/^\s+/\n/gm;
+#s/\n\n\n+/\n\n/gs; <-- Apparently hangs on large input...
 s/\b(\d+\/\d+\/$vocab{EC})\b/[[$1]]/g;
 s/^\s*-\s+(.*)$/\n* $1/gm;
 
