@@ -51,6 +51,7 @@ $commities_abbr{'Environment, Public Health, Consumer Policy'} = 'ENVI';
 $commities_abbr{'Citizens\' Freedoms and Rights, Justice and Home Affairs'} = 'LIBE';
 $commities_abbr{'Legal Affairs and Internal Market'} = 'JURI';
 $commities_abbr{'Industry, External Trade, Research, Energy'} = 'ITRE';
+$commities_abbr{'Parliament delegation to Conciliation Committee'} = 'CODE';
 
 print "{| border='1' cellspacing='0' class='wikitable sortable'\n! tratten link !! summary";
 print " !! $_" for @commities;
