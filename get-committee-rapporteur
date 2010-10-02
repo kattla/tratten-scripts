@@ -74,7 +74,7 @@ for (sort keys %monitored) {
   %results = ();
   my ($chd_url, $summary, $url) = @{$monitored{$_}};
   my $name = $_;
-  my $page_content = get $url || (print "WARNING: Could not download $url\n$!\n", next);
+  my $page_content = get $url || (print STDERR "WARNING: Could not download $url\n$!\n", next);
   unless ($page_content) { print STDERR "WARNING: Um.. should not happen... But anyway:\nCould not download $url\nSorry.\n"; next }
   $page_content =~ m/\s(\S*?)<\/title>/;
   ((print STDERR "WARNING: Monitored page $chd_url is $1 but is named $name!\n"), $name = $1) if $name ne $1;
