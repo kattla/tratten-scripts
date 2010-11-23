@@ -3,13 +3,11 @@
 use strict;
 use Tratten::Monitored;
 
-my %monitored = %{ &get_monitored };
-
 print "{| border='1' cellspacing='0' class='wikitable sortable'\n! tratten link !! summary !! log file\n";
 
-for (sort keys %monitored) {
-  my ($url, $desc) = @{$monitored{$_}};
-  print "|-\n| [[$_]] || $desc || [$url]\n";
+for (sort keys %Tratten::Monitored::refnum) {
+  my %x = %{ $Tratten::Monitored::refnum{$_} };
+  print "|-\n| [[$_]] || $x{desc} || [$x{log}]\n";
 }
 
 print "|}\n";

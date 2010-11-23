@@ -13,8 +13,6 @@ our $table_footer = "|}\n";
 
 our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
 
-our %monitored;
-
 our $stageId;
 our $next_index;
 our $number_results;
@@ -60,7 +58,8 @@ sub table_body {
         $rapporteur = &next_bare if /Display the reporter or co-reporter/;
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
-      my $monitored = "[" . $monitored{$id}->[0] . " $1]" if $monitored{$id}->[0] =~ /\/([^\/]+)\.html$/;
+      my $monitor = $Tratten::Monitored::refnum{$id};
+      my $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
       $counter += 1;
       print OUT "|-\n";
       print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
@@ -68,10 +67,6 @@ sub table_body {
   }
 }
 
-print "Logging in to changedetection...\n";
-%monitored = %{ &get_monitored };
-my $number_monitored = keys %monitored;
-print "$number_monitored pages are monitored.\n";
 
 print "Getting oeil-pages...\n";
 print OUT $table_header;
@@ -87,6 +82,7 @@ while (@stageId) {
 print OUT $table_footer;
 
 chomp(my $date = `date -u +%F`);
-print OUT "\nRetrieved $counter rows of data at $date. Number of dossiers monitored: $number_monitored.\n";
+my $dossiers_monitored = keys %Tratten::Monitored::refnum;
+print OUT "\nRetrieved $counter rows of data at $date. Number of dossiers monitored: $dossiers_monitored.\n";
 
 print "Done.\n";

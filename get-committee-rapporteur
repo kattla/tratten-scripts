@@ -8,12 +8,8 @@ use utf8;
 binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
-use File::Fetch;
-use LWP::Simple;
-
 use Tratten::Monitored;
-
-my %monitored = %{ &get_monitored };
+use Tratten::Cache;
 
 my %commities = (
   'CODE' => 'Conciliation Committee',
@@ -71,16 +67,18 @@ sub display_results
   print "\n";
 }
 
-for (sort keys %monitored) {
+for (sort keys %Tratten::Monitored::refnum) {
   %results = ();
-  my ($chd_url, $summary, $url) = @{$monitored{$_}};
+  my %x = %{$Tratten::Monitored::refnum{$_}};
   my $name = $_;
-  &Tratten::Throttle::sync($url);
-  my $page_content = get $url || (print STDERR "WARNING: Could not download $url\n$!\n", next);
-  unless ($page_content) { print STDERR "WARNING: Um.. should not happen... But anyway:\nCould not download $url\nSorry.\n"; next }
+  my $page_content = &Tratten::Cache::URI($x{uri},
+    expire_if => sub { $_[0]->{CD_last_notified} ne $x{last_notified} },
+    meta => { CD_last_notified => $x{last_notified} },
+  );
+  unless ($page_content) { print STDERR "WARNING: Could not download $x{uri}\n$!\n"; next; }
   $page_content =~ m/\s(\S*?)<\/title>/;
-  ((print STDERR "WARNING: Monitored page $chd_url is $1 but is named $name!\n"), $name = $1) if $name ne $1;
-  print "|-\n | [[$name]] || $summary";
+  ((print STDERR "WARNING: Monitored page $x{log} is $1 but is named $name!\n"), $name = $1) if $name ne $1;
+  print "|-\n | [[$name]] || $x{desc}";
 
   while ($page_content =~ /
       <div\s[^>]*>\s*(?:<i>)?(?<comm>[^(]*?)\s+\((?<status>responsible|opinion)\)(?:<\/i>)?\s*<\/div>
@@ -96,7 +94,7 @@ for (sort keys %monitored) {
     $results{$commities_abbr{$+{comm}}} = [($+{mep}||""), $+{status}];
   }
   display_results;
-  print STDERR "$url $name: ". (scalar keys %results) ."\n";
+  print STDERR "$x{uri} $name: ". (scalar keys %results) ."\n";
 }
 
 print "|}\n";
