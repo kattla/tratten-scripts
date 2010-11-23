@@ -3,6 +3,7 @@
 use strict;
 #use warnings;
 use Tratten::Monitored;
+use Tratten::Throttle;
 
 open OUT, ">out.txt";
 
@@ -20,6 +21,7 @@ our $number_results;
 our $stage_reached;
 
 sub get_page {
+  &Tratten::Throttle::sync("http://www.europarl.europa.eu/");
   my $form = "-d 'xpath=/oeil/search/procstage/stage' -d 'scope=stage' -d 'countEStat=true' -d 'startIndex=$next_index' -d 'stageId=$stageId' -d 'pageSize=50'";
   my @body = `curl -# $form --url http://www.europarl.europa.eu/oeil/FindByStage.do`;
   while (@body) {
@@ -80,8 +82,6 @@ while (@stageId) {
   while ($next_index <= $number_results) {
     @data = &get_page;
     &table_body;
-    print "Waiting 3 seconds between pages for courtesy.\n";
-    sleep 3;
   }
 }
 print OUT $table_footer;

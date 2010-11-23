@@ -2,6 +2,7 @@ package Tratten::Monitored;
 
 use strict;
 use warnings;
+use Tratten::Throttle;
 use base 'Exporter';
 our @EXPORT = qw(get_monitored);
 

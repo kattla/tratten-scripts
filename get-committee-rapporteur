@@ -75,6 +75,7 @@ for (sort keys %monitored) {
   %results = ();
   my ($chd_url, $summary, $url) = @{$monitored{$_}};
   my $name = $_;
+  &Tratten::Throttle::sync($url);
   my $page_content = get $url || (print STDERR "WARNING: Could not download $url\n$!\n", next);
   unless ($page_content) { print STDERR "WARNING: Um.. should not happen... But anyway:\nCould not download $url\nSorry.\n"; next }
   $page_content =~ m/\s(\S*?)<\/title>/;
