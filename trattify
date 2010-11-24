@@ -8,7 +8,7 @@ use Tratten::Throttle;
 open OUT, ">out.txt";
 
 our $table_header = "{| border='1' cellspacing='0' class='wikitable sortable'
-! oeil link / tratten page !! stage reached !! procedure !! stage !! name !! committee !! rapporteur !! COM number !! next forecast !! monitored\n";
+! oeil link / tratten page !! forecasts !! stage reached !! procedure !! stage !! name !! committee !! rapporteur !! COM number !! monitored\n";
 our $table_footer = "|}\n";
 
 our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
@@ -61,17 +61,22 @@ sub table_body {
       my $monitor = $Tratten::Monitored::refnum{$id};
       my $forecast = "No data";
       if ($monitor) {
-        $forecast = "";
+        $forecast = "No forecasts";
         my $doss = Tratten::Monitored::dossier($monitor);
         if ($doss->{forecasts}) {
           my $x = $doss->{forecasts}->[0];
-          $forecast = $x->{date} . " " . $x->{activity};
+          my $date = $x->{date};
+          if ($date =~ m#^(\d\d)/(\d\d)/(\d\d\d\d)$#) { $date = "$3-$2-$1"; }
+          $forecast = $date . " " . $x->{activity};
+          my $num_forecasts = scalar @{$doss->{forecasts}};
+          if ($num_forecasts == 2) { $forecast .= " (+ 1 more forecast)" }
+          if ($num_forecasts > 2) { $forecast .= " (+ $num_forecasts more forecasts)" }
         }
       }
       my $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
       $counter += 1;
       print OUT "|-\n";
-      print OUT "| [$url $id] / [[$id]] || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $forecast || $monitored\n";
+      print OUT "| [$url $id] / [[$id]] || $forecast || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
     }
   }
 }
