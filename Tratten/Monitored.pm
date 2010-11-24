@@ -14,6 +14,7 @@ sub dossier {
     print STDERR "WARNING: Not a dossier $monitor->{uri}\n";
     return undef;
   }
+  print STDERR "Getting dossier $monitor->{name}\n";
   my $page_content = &Tratten::Cache::URI($monitor->{uri},
     expire_if => sub { $_[0]->{CD_last_notified} ne $monitor->{last_notified} },
     meta => { CD_last_notified => $monitor->{last_notified} },
