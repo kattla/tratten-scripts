@@ -3,15 +3,31 @@ package Tratten::Monitored;
 use strict;
 use warnings;
 use Tratten::Cache;
+use Tratten::Dossier;
 
 our %uri;
 our %refnum;
+
+sub dossier {
+  my $monitor = (ref $_[0] && $_[0]) || $uri{$_[0]} || $refnum{$_[0]} || die;
+  unless ($monitor->{uri} =~ m(^http://www\.europarl\.europa\.eu/oeil/file\.jsp\?id=\d+$)) {
+    print STDERR "WARNING: Not a dossier $monitor->{uri}\n";
+    return undef;
+  }
+  my $page_content = &Tratten::Cache::URI($monitor->{uri},
+    expire_if => sub { $_[0]->{CD_last_notified} ne $monitor->{last_notified} },
+    meta => { CD_last_notified => $monitor->{last_notified} },
+  );
+  my $dossier = Tratten::Dossier::parse($page_content);
+  $dossier->{monitor} = $monitor;
+  return $dossier;
+}
 
 my $email;
 my $password;
 
 {
-  &load_account_info;
+  &_load_account_info;
   my $key = "monitors:$email";
   my $cached = &Tratten::Cache::get($key);
   if ($cached) {
@@ -20,14 +36,14 @@ my $password;
     for (keys %uri) { $refnum{$uri{$_}->{refnum}} = $uri{$_} if $uri{$_}->{refnum} }
   } else {
     print STDERR "Logging in to changedetection...\n";
-    &fetch_monitors;
+    &_fetch_monitors;
     &Tratten::Cache::set($key, \%uri, "1 day");
   }
   my $number_monitored = keys %uri;
   print STDERR "$number_monitored pages are monitored.\n";
 }
 
-sub load_account_info {
+sub _load_account_info {
   my $filename = "changedetection.account";
   open my $F, $filename or die "Could not open file '$filename': $!";
 
@@ -36,7 +52,7 @@ sub load_account_info {
   die("Need email & password each on its own line, in the changedetection.account file. Quitting.") unless $email and $password;
 }
 
-sub fetch_monitors {
+sub _fetch_monitors {
   my $args = "-# --sslv3 --cookie-jar cookies";
   my $form = "-F 'email=$email' -F 'frompage=http://www.changedetection.com/monitors.html' -F 'login=log in' -F 'op=login' -F 'pw=$password'";
 

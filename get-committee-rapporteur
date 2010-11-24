@@ -53,48 +53,31 @@ print "{| border='1' cellspacing='0' class='wikitable sortable'\n! tratten link 
 print " !! $_" for @commities;
 print "\n";
 
-my %results;
+for (sort keys %Tratten::Monitored::refnum) {
+  my %index = ();
+  my %doss = %{ Tratten::Monitored::dossier($_) || next };
+  my %monitor = %{ $doss{monitor} };
+  print STDERR "WARNING: Monitored page $monitor{log} is $doss{reference} but is named $monitor{refnum}!\n" if $monitor{refnum} ne $doss{reference};
+  print "|-\n | [[$doss{reference}]] || $monitor{desc}";
 
-sub display_results
-{
+  for (@{$doss{agents}}) {
+    $_->{committee} =~ /^(.+?)\s+\((.+)\)$/ or die;
+    my ($comm, $status) = ($1, $2);
+    if (not defined $commities_abbr{$comm}) {
+      print STDERR "WARNING: Unknown commitee $comm\n";
+      next;
+    }
+    $index{$commities_abbr{$comm}} = [($_->{MEP}||""), $status];
+  }
   for (@commities) {
-    if (defined $results{$_}) {
-      my ($MEP, $status) = @{ $results{$_} };
+    if (defined $index{$_}) {
+      my ($MEP, $status) = @{ $index{$_} };
       print " || ($status) $MEP";
     }
     else { print " ||" }
   }
   print "\n";
-}
-
-for (sort keys %Tratten::Monitored::refnum) {
-  %results = ();
-  my %x = %{$Tratten::Monitored::refnum{$_}};
-  my $name = $_;
-  my $page_content = &Tratten::Cache::URI($x{uri},
-    expire_if => sub { $_[0]->{CD_last_notified} ne $x{last_notified} },
-    meta => { CD_last_notified => $x{last_notified} },
-  );
-  unless ($page_content) { print STDERR "WARNING: Could not download $x{uri}\n$!\n"; next; }
-  $page_content =~ m/\s(\S*?)<\/title>/;
-  ((print STDERR "WARNING: Monitored page $x{log} is $1 but is named $name!\n"), $name = $1) if $name ne $1;
-  print "|-\n | [[$name]] || $x{desc}";
-
-  while ($page_content =~ /
-      <div\s[^>]*>\s*(?:<i>)?(?<comm>[^(]*?)\s+\((?<status>responsible|opinion)\)(?:<\/i>)?\s*<\/div>
-      |
-      <span>\s*(?:<i>)?(?<comm>[^(]*?)\s+\((?<status>responsible|opinion)\)(?:<\/i>)?\s*<\/span>\s*<\/td>\s*
-      <td\s[^>]*>\s*(?:<br\/>|&nbsp;)?(?<mep>.*?)\s*<\/td>
-    /msgx)
-  {
-    if (not defined $commities_abbr{$+{comm}}) {
-      print STDERR "WARNING: Unknown commitee $+{comm}\n";
-      next;
-    }
-    $results{$commities_abbr{$+{comm}}} = [($+{mep}||""), $+{status}];
-  }
-  display_results;
-  print STDERR "$x{uri} $name: ". (scalar keys %results) ."\n";
+  print STDERR "$monitor{uri} $doss{reference}: ". (scalar keys %index) ."\n";
 }
 
 print "|}\n";
