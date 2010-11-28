@@ -68,9 +68,9 @@ sub table_body {
           my $date = $x->{date};
           if ($date =~ m#^(\d\d)/(\d\d)/(\d\d\d\d)$#) { $date = "$3-$2-$1"; }
           $forecast = $date . " " . $x->{activity};
-          my $num_forecasts = scalar @{$doss->{forecasts}};
-          if ($num_forecasts == 2) { $forecast .= " (+ 1 more forecast)" }
-          if ($num_forecasts > 2) { $forecast .= " (+ $num_forecasts more forecasts)" }
+          my $num_more = scalar @{$doss->{forecasts}} - 1;
+          if ($num_more == 1) { $forecast .= " (+ 1 more forecast)" }
+          if ($num_more > 1) { $forecast .= " (+ $num_more more forecasts)" }
         }
       }
       my $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
