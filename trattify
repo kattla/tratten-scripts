@@ -59,7 +59,7 @@ sub table_body {
         $com = $1 if /(COM\(\d+\)\d+)/;
       }
       my $monitor = $Tratten::Monitored::refnum{$id};
-      my $forecast = "No data";
+      my $forecast = "Unknown";
       if ($monitor) {
         $forecast = "No forecasts";
         my $doss = Tratten::Monitored::dossier($monitor);
