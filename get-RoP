@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+use strict;
+use HTML::TokeParser;
+
+open OUT_rules, ">out_rules.txt";
+open OUT_annexes, ">out_annexes.txt";
+
+our @rulenumber = ("001".. "216");
+our $rulenumber;
+our $ruletext;
+
+our @annexnumber = ("01".. "21");
+our $annexnumber;
+our $annextext;
+
+our $text;
+our $p;
+
+sub get_RoP_rules {
+  while (@rulenumber) {
+    $rulenumber = shift @rulenumber;
+    my $ruletext = `curl -# http://www.europarl.europa.eu/sides/getDoc.do?pubRef=-//EP//TEXT+RULES-EP+20040720+RULE-$rulenumber+DOC+XML+V0//EN&language=EN&navigationBar=YES`;
+    my $p = HTML::TokeParser->new(shift||\$ruletext);
+    while (my $ruletext = $p->get_tag("p")) {
+      my $text = $p->get_trimmed_text("/p");
+      print OUT_rules $text;
+      print OUT_rules "\n\n";
+    }
+  }
+}
+
+sub get_RoP_annexes {
+  while (@annexnumber) {
+    $annexnumber = shift @annexnumber;
+    my $annextext = `curl -# http://www.europarl.europa.eu/sides/getDoc.do?pubRef=-//EP//TEXT+RULES-EP+20040720+ANN-$annexnumber+DOC+XML+V0//EN&language=EN&navigationBar=YES`;
+    my $p = HTML::TokeParser->new(shift||\$annextext);
+    while (my $annextext = $p->get_tag("p")) {
+      my $text = $p->get_trimmed_text("/p");
+      print OUT_annexes $text;
+      print OUT_annexes "\n\n";
+    }
+  }
+}
+
+print "Getting RoP...\n";
+&get_RoP_rules;
+&get_RoP_annexes;
+print "Done.\n";
