@@ -20,6 +20,7 @@ sub URI {
   my $data = $cache->get($uri);
   return $data->{content} if $data && not ($arg{expire_if} && $arg{expire_if}($data));
   my $ua = LWP::UserAgent->new;
+  print STDERR "Fetching $uri\n";
   Tratten::Throttle::sync($uri);
   my $r = $ua->get($uri);
   die $r->status_line unless $r->is_success;
