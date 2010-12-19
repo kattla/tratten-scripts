@@ -80,6 +80,7 @@ sub table_body {
         }
         $legal_basis = $doss->{legal_basis};
         $legal_basis =~ s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
+        $legal_basis =~ s/(TEU\s+0*(\d+)[-0-9a-z]*)/[[TEU#Article_$2 | $1]]/g;
         if ($doss->{committee_dossier} =~ /(([A-Z]+)\/\d+\/\d+)/) {
           $committee_dossier = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$1&body=$2&language=EN $1]";
         } elsif (not $committee) {
