@@ -14,12 +14,13 @@ sub parse {
     if (/Identification/) {
       for (@row) {
         my @col = $_->content_list;
-        $_ = $col[0]->as_trimmed_text;
-        if ($_ eq "Reference") { $data{reference} = $col[1]->as_trimmed_text; }
-        elsif ($_ eq "Title") { $data{title} = $col[1]->as_trimmed_text; }
-        elsif ($_ eq "Legal Basis") { $data{legal_basis} = $col[1]->as_trimmed_text; }
-        elsif ($_ eq "Dossier of the committee") { $data{committee_dossier} = $col[1]->as_trimmed_text; }
-        elsif ($_ eq "Stage reached") { $data{stage_reached} = $col[1]->as_trimmed_text;}
+        my $k = $col[0]->as_trimmed_text;
+        my $v = $col[1]->as_trimmed_text; s/^\s+//, s/\s+$// for ($v);
+        if ($k eq "Reference") { $data{reference} = $v; }
+        elsif ($k eq "Title") { $data{title} = $v; }
+        elsif ($k eq "Legal Basis") { $data{legal_basis} = $v; }
+        elsif ($k eq "Dossier of the committee") { $data{committee_dossier} = $v; }
+        elsif ($k eq "Stage reached") { $data{stage_reached} = $v;}
       }
     } elsif (/Agents/) {
       $_ = shift @row; $_ = $_->as_trimmed_text; unless (/European Parliament/) { warn; next; }

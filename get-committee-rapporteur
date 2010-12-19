@@ -10,47 +10,10 @@ binmode STDERR, ":utf8";
 
 use Tratten::Monitored;
 use Tratten::Cache;
-
-my %commities = (
-  'CODE' => 'Conciliation Committee',
-  'AFET' => 'Foreign Affairs',
-  'DROI' => 'Human Rights',
-  'SEDE' => 'Security and Defence',
-  'DEVE' => 'Development',
-  'INTA' => 'International Trade',
-  'BUDG' => 'Budgets',
-  'CONT' => 'Budgetary Control',
-  'ECON' => 'Economic and Monetary Affairs',
-  'EMPL' => 'Employment and Social Affairs',
-  'ENVI' => 'Environment, Public Health and Food Safety',
-  'ITRE' => 'Industry, Research and Energy',
-  'IMCO' => 'Internal Market and Consumer Protection',
-  'TRAN' => 'Transport and Tourism',
-  'REGI' => 'Regional Development',
-  'AGRI' => 'Agriculture and Rural Development',
-  'PECH' => 'Fisheries',
-  'CULT' => 'Culture and Education',
-  'JURI' => 'Legal Affairs',
-  'LIBE' => 'Civil Liberties, Justice and Home Affairs',
-  'AFCO' => 'Constitutional Affairs',
-  'FEMM' => 'Women\'s Rights and Gender Equality',
-  'PETI' => 'Petitions',
-  'CRIS' => 'Financial, Economic and Social Crisis',
-);
-
-my @commities = sort keys %commities;
-my %commities_abbr;
-$commities_abbr{$commities{$_}} = $_ for keys %commities;
-$commities_abbr{'Women’s Rights and Gender Equality'} = 'FEMM';
-$commities_abbr{'Human Rights, subcommittee'} = 'DROI';
-$commities_abbr{'Environment, Public Health, Consumer Policy'} = 'ENVI';
-$commities_abbr{'Citizens\' Freedoms and Rights, Justice and Home Affairs'} = 'LIBE';
-$commities_abbr{'Legal Affairs and Internal Market'} = 'JURI';
-$commities_abbr{'Industry, External Trade, Research, Energy'} = 'ITRE';
-$commities_abbr{'Parliament delegation to Conciliation Committee'} = 'CODE';
+use Tratten::Committee;
 
 print "{| border='1' cellspacing='0' class='wikitable sortable'\n! tratten link !! summary";
-print " !! $_" for @commities;
+print " !! $_" for @Tratten::Committee::abbr;
 print "\n";
 
 for (sort keys %Tratten::Monitored::refnum) {
@@ -63,13 +26,10 @@ for (sort keys %Tratten::Monitored::refnum) {
   for (@{$doss{agents}}) {
     $_->{committee} =~ /^(.+?)\s+\((.+)\)$/ or die;
     my ($comm, $status) = ($1, $2);
-    if (not defined $commities_abbr{$comm}) {
-      print STDERR "WARNING: Unknown commitee $comm\n";
-      next;
-    }
-    $index{$commities_abbr{$comm}} = [($_->{MEP}||""), $status];
+    my $abbr = Tratten::Committee::abbreviate($comm) or next;
+    $index{$abbr} = [($_->{MEP}||""), $status];
   }
-  for (@commities) {
+  for (@Tratten::Committee::abbr) {
     if (defined $index{$_}) {
       my ($MEP, $status) = @{ $index{$_} };
       print " || ($status) $MEP";
