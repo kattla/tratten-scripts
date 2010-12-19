@@ -12,16 +12,29 @@ sub parse {
     $x = $x->look_up("_tag","table")->right;
     my @row = $x->content_list;
     if (/Identification/) {
-      my @col = $row[0]->content_list;
-      die unless $col[0]->as_trimmed_text eq "Reference";
-      $data{reference} = $col[1]->as_trimmed_text;
-    } elsif (/Agents/) {
-      shift @row; shift @row; # skip headers
-      my @agents = map {
+      for (@row) {
         my @col = $_->content_list;
-        +{ committee => $col[0]->as_trimmed_text, MEP => $col[1]->as_trimmed_text };
-      } @row;
-      $data{agents} = \@agents;
+        $_ = $col[0]->as_trimmed_text;
+        if ($_ eq "Reference") { $data{reference} = $col[1]->as_trimmed_text; }
+        elsif ($_ eq "Title") { $data{title} = $col[1]->as_trimmed_text; }
+        elsif ($_ eq "Legal Basis") { $data{legal_basis} = $col[1]->as_trimmed_text; }
+        elsif ($_ eq "Dossier of the committee") { $data{committee_dossier} = $col[1]->as_trimmed_text; }
+        elsif ($_ eq "Stage reached") { $data{stage_reached} = $col[1]->as_trimmed_text;}
+      }
+    } elsif (/Agents/) {
+      $_ = shift @row; $_ = $_->as_trimmed_text; unless (/European Parliament/) { warn; next; }
+      if (/Committee/) {
+        my @x = $row[0]->content_list;
+        my @agents = map { +{ committee => $_->as_trimmed_text } } $x[0]->content_list;
+        $data{agents} = \@agents;
+      } else {
+        shift @row;
+        my @agents = map {
+          my @col = $_->content_list;
+          +{ committee => $col[0]->as_trimmed_text, MEP => $col[1]->as_trimmed_text };
+        } @row;
+        $data{agents} = \@agents;
+      }
     } elsif (/Forecasts/) {
       my @forecasts = map {
         my @col = $_->content_list;

@@ -6,9 +6,10 @@ use Tratten::Monitored;
 use Tratten::Throttle;
 
 open OUT, ">out.txt";
+binmode OUT, ":utf8";
 
 our $table_header = "{| border='1' cellspacing='0' class='wikitable sortable'
-! oeil link / tratten page !! forecasts !! stage reached !! procedure !! stage !! name !! committee !! rapporteur !! COM number !! monitored\n";
+! oeil link / tratten page !! forecasts !! stage reached !! legal basis !! stage !! name !! committee dossier / committee !! rapporteur !! COM number !! monitored\n";
 our $table_footer = "|}\n";
 
 our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
@@ -22,6 +23,7 @@ sub get_page {
   &Tratten::Throttle::sync("http://www.europarl.europa.eu/");
   my $form = "-d 'xpath=/oeil/search/procstage/stage' -d 'scope=stage' -d 'countEStat=true' -d 'startIndex=$next_index' -d 'stageId=$stageId' -d 'pageSize=50'";
   my @body = `curl -# $form --url http://www.europarl.europa.eu/oeil/FindByStage.do`;
+  if ($?) { die; }
   while (@body) {
     $_ = shift @body;
     if (/<span class="number_results">(\d+)<\/span>/) {
@@ -40,19 +42,20 @@ sub get_page {
 our @data;
 our $counter = 0;
 
-sub next_bare { while (@data) { $_ = shift @data; return $1 if /^\s*(\w.*)$/; } }
+sub next_bare { while (@data) { $_ = shift @data; utf8::decode($_); return $1 if /^\s*(\w.*)$/; } }
 
 sub table_body {
   while (@data) {
     $_ = shift @data;
+    utf8::decode($_);
     if (/(file\.jsp\?id=[0-9]+)" class="com_acronym">([^<]+)<\/a>/) {
       my $url = "http://www.europarl.europa.eu/oeil/$1";
       my $id = $2;
-      my ($name, $proc, $stage, $committee, $rapporteur, $com) = ();
+      my ($name, $stage, $committee, $rapporteur, $com) = ();
       while (@data) {
         $_ = shift @data;
         last if /procedure number/;
-        ($proc, $stage) = ($1,$3) if /">([^<,]+)(, ([^<]+))?<\/div>/;
+        $stage = $1 if /">[^<,]+(?:, ([^<]+))?<\/div>/;
         $name = &next_bare if /starts with the title/;
         $committee = &next_bare if /Display the committee responsible/;
         $rapporteur = &next_bare if /Display the reporter or co-reporter/;
@@ -60,6 +63,7 @@ sub table_body {
       }
       my $monitor = $Tratten::Monitored::refnum{$id};
       my $forecast = "Unknown";
+      my $legal_basis = "";
       if ($monitor) {
         $forecast = "No forecasts";
         my $doss = Tratten::Monitored::dossier($monitor);
@@ -72,11 +76,22 @@ sub table_body {
           if ($num_more == 1) { $forecast .= " (+ 1 more forecast)" }
           if ($num_more > 1) { $forecast .= " (+ $num_more more forecasts)" }
         }
+        $legal_basis = $doss->{legal_basis};
+        $legal_basis =~ s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
+        if ($doss->{committee_dossier} =~ /(([A-Z]+)\/\d+\/\d+)/) {
+          $committee = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$1&body=$2&language=EN $1]";
+        } elsif (not $committee) {
+          for (@{$doss->{agents}}) {
+            if ($_->{committee} =~ /^\s*(.+?)\s+\(responsible\)\s*$/) { $committee = $1; }
+          }
+        }
       }
-      my $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
+      $com =~ s#(COM\((\d+)\)(\d+))#[http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=COM:$2:$3:FIN:EN:HTML $1]#;
+      my $monitored = "";
+      $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
       $counter += 1;
       print OUT "|-\n";
-      print OUT "| [$url $id] / [[$id]] || $forecast || $stage_reached || $proc || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
+      print OUT "| [$url $id] / [[$id]] || $forecast || $stage_reached || $legal_basis || $stage || $name || $committee || $rapporteur || $com || $monitored\n";
     }
   }
 }
