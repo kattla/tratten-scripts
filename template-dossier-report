@@ -29,7 +29,12 @@ for (@{ $dossier->{agents} }) {
 
 print "<big><big>'''", $dossier->{title}, "'''</big></big>";
 if ($dossier->{monitor}) { print " [", $dossier->{monitor}->{log}, " change log]"; }
-print " [$uri oeil]\n";
+print " [$uri oeil]";
+{
+  local $_ = $dossier->{title}; s/\s/+/g;
+  print " [http://www.google.com/search?q=$_ google]";
+}
+print "\n";
 print "{| border='1' cellspacing='0' class='wikitable sortable'\n";
 print "! Function";
 for (sort keys %comm) { print " !! [[", $dossier->{reference}, "/$_|$_]]"; }
