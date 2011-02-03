@@ -49,3 +49,17 @@ for (sort keys %comm) { print " || ", ($_ eq $lead) ? $comm{$_} : "-"; }
 print "\n|-\n| EP MEP shadow rapporteur(s) (opinion)";
 for (sort keys %comm) { print " || ", ($_ ne $lead) ? $comm{$_} : "-"; }
 print "\n|}\n";
+if ($dossier->{committee_dossier}) {
+  local $_ = $dossier->{committee_dossier};
+  if (/^([A-Z]+)\/\d+\/\d+$/) {
+    $_ = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$_&body=$1&language=EN $_]";
+  }
+  print "Lead committee dossier $_<br/>\n";
+}
+if ($dossier->{legal_basis}) {
+  local $_ = $dossier->{legal_basis};
+  s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
+  s/(TEU\s+0*(\d+)[-0-9a-z]*)/[[TEU#Article_$2 | $1]]/g;
+  s/(EP\s+0*(\d+)[-0-9a-z]*)/[[RoP#Rule_$2 | $1]]/g;
+  print "Legal Basis $_<br/>\n";
+}
