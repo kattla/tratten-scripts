@@ -43,7 +43,9 @@ for (@{ $dossier->{forecasts} }) {
 }
 print "{| border='1' cellspacing='0' class='wikitable'\n";
 print "! Function";
-for (sort keys %comm) { print " !! [[", $dossier->{reference}, "/$_|$_]]"; }
+for (sort keys %comm) {
+  print " !! [[", $dossier->{reference}, ($_ eq $lead) ? "" : "/$_", "|$_]]";
+}
 print "\n|-\n| EP MEP rapporteur (lead)";
 for (sort keys %comm) { print " || ", ($_ eq $lead) ? $comm{$_} : "-"; }
 print "\n|-\n| EP MEP shadow rapporteur(s) (opinion)";
