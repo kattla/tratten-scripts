@@ -24,7 +24,7 @@ for (@{ $dossier->{agents} }) {
   my ($comm, $status) = ($1, $2);
   my $abbr = Tratten::Committee::abbreviate($comm) or die;
   if ($status eq "responsible") { die if $lead; $lead = $abbr; }
-  $comm{$abbr} = $_->{MEP};
+  unless ($_->{MEP} =~ /^\s*$/) { $comm{$abbr} = $_->{MEP}; }
 }
 
 print "<big><big>'''", $dossier->{title}, "'''</big></big>";
