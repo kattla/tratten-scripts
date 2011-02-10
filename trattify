@@ -41,70 +41,78 @@ sub get_page {
 
   
 our @data;
+our @entries;
 our $counter = 0;
 
 sub next_bare { while (@data) { $_ = shift @data; utf8::decode($_); return $1 if /^\s*(\w.*?)\s*$/; } }
 
-sub table_body {
+sub parse_entries {
   while (@data) {
     $_ = shift @data;
     utf8::decode($_);
     if (/(file\.jsp\?id=[0-9]+)" class="com_acronym">([^<]+)<\/a>/) {
-      my $url = "http://www.europarl.europa.eu/oeil/$1";
-      my $id = $2;
-      my ($name, $stage, $committee, $rapporteur, $com) = ();
+      my $entry = { };
+      $entry->{stage_reached} = $stage_reached;
+      $entry->{url} = "http://www.europarl.europa.eu/oeil/$1";
+      $entry->{refnum} = $2;
       while (@data) {
         $_ = shift @data;
         last if /procedure number/;
-        $stage = $1 if /">[^<,]+(?:, ([^<]+))?<\/div>/;
-        $name = &next_bare if /starts with the title/;
-        $committee = &next_bare if /Display the committee responsible/;
-        $rapporteur = &next_bare if /Display the reporter or co-reporter/;
-        $com = $1 if /(COM\(\d+\)\d+)/;
+        $entry->{stage} = $1 if /">[^<,]+(?:, ([^<]+))?<\/div>/;
+        $entry->{name} = &next_bare if /starts with the title/;
+        $entry->{committee} = &next_bare if /Display the committee responsible/;
+        $entry->{rapporteur} = &next_bare if /Display the reporter or co-reporter/;
+        $entry->{com} = $1 if /(COM\(\d+\)\d+)/;
       }
-      my $monitor = $Tratten::Monitored::refnum{$id};
-      my $forecast = "Unknown";
-      my $legal_basis = "";
-      my $committee_dossier = "";
+      my $monitor = $Tratten::Monitored::refnum{$entry->{refnum}};
+      $entry->{forecast} = "Unknown";
+      $entry->{legal_basis} = "";
+      $entry->{committee_dossier} = "";
       if ($monitor) {
-        $forecast = "No forecasts";
+        $entry->{forecast} = "No forecasts";
         my $doss = Tratten::Monitored::dossier($monitor);
         if ($doss->{forecasts}) {
           my $x = $doss->{forecasts}->[0];
           my $date = $x->{date};
           if ($date =~ m#^(\d\d)/(\d\d)/(\d\d\d\d)$#) { $date = "$3-$2-$1"; }
-          $forecast = $date . " " . $x->{activity};
+          $entry->{forecast} = $date . " " . $x->{activity};
           my $num_more = scalar @{$doss->{forecasts}} - 1;
-          if ($num_more == 1) { $forecast .= " (+ 1 more forecast)" }
-          if ($num_more > 1) { $forecast .= " (+ $num_more more forecasts)" }
+          if ($num_more == 1) { $entry->{forecast} .= " (+ 1 more forecast)" }
+          if ($num_more > 1) { $entry->{forecast} .= " (+ $num_more more forecasts)" }
         }
-        $legal_basis = $doss->{legal_basis};
-        $legal_basis =~ s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
-        $legal_basis =~ s/(TEU\s+0*(\d+)[-0-9a-z]*)/[[TEU#Article_$2 | $1]]/g;
-        $legal_basis =~ s/(EP\s+0*(\d+)[-0-9a-z]*)/[[RoP#Rule_$2 | $1]]/g;
+        $entry->{legal_basis} = $doss->{legal_basis};
+        $entry->{legal_basis} =~ s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
+        $entry->{legal_basis} =~ s/(TEU\s+0*(\d+)[-0-9a-z]*)/[[TEU#Article_$2 | $1]]/g;
+        $entry->{legal_basis} =~ s/(EP\s+0*(\d+)[-0-9a-z]*)/[[RoP#Rule_$2 | $1]]/g;
         if ($doss->{committee_dossier} =~ /(([A-Z]+)\/\d+\/\d+)/) {
-          $committee_dossier = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$1&body=$2&language=EN $1]";
-        } elsif (not $committee) {
+          $entry->{committee_dossier} = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$1&body=$2&language=EN $1]";
+        } elsif (not $entry->{committee}) {
           for (@{$doss->{agents}}) {
-            if ($_->{committee} =~ /^\s*(.+?)\s+\(responsible\)\s*$/) { $committee = $1; }
+            if ($_->{committee} =~ /^\s*(.+?)\s+\(responsible\)\s*$/) { $entry->{committee} = $1; }
           }
         }
       }
-      unless ($committee_dossier) {
-        my $committee_abbr = Tratten::Committee::abbreviate($committee);
-        if ($committee_abbr) { $committee_dossier = "[[$committee_abbr]]"; }
-        else { $committee_dossier = $committee; }
+      unless ($entry->{committee_dossier}) {
+        my $committee_abbr = Tratten::Committee::abbreviate($entry->{committee});
+        if ($committee_abbr) { $entry->{committee_dossier} = "[[$committee_abbr]]"; }
+        else { $entry->{committee_dossier} = $entry->{committee}; }
       }
-      $com =~ s#(COM\((\d+)\)(\d+))#[http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=COM:$2:$3:FIN:EN:HTML $1]#;
-      my $monitored = "";
-      $monitored = "[" . $monitor->{log} . " $1]" if $monitor->{log} =~ /\/([^\/]+)\.html$/;
+      $entry->{com} =~ s#(COM\((\d+)\)(\d+))#[http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=COM:$2:$3:FIN:EN:HTML $1]#;
+      $entry->{monitored} = ($monitor->{log} =~ /\/([^\/]+)\.html$/) ?
+        ("[" . $monitor->{log} . " $1]") : "";
       $counter += 1;
-      print OUT "|-\n";
-      print OUT "| [$url $id] / [[$id]] || $forecast || $stage_reached || $legal_basis || $stage || $name || $committee_dossier || $rapporteur || $com || $monitored\n";
+      push @entries, $entry;
     }
   }
 }
 
+sub write_entries {
+  @entries = sort { $a->{forecast} cmp $b->{forecast} } @entries;
+  for (@entries) {
+    print OUT "|-\n";
+    print OUT "| [$_->{url} $_->{refnum}] / [[$_->{refnum}]] || $_->{forecast} || $_->{stage_reached} || $_->{legal_basis} || $_->{stage} || $_->{name} || $_->{committee_dossier} || $_->{rapporteur} || $_->{com} || $_->{monitored}\n";
+  }
+}
 
 print "Getting oeil-pages...\n";
 print OUT $table_header;
@@ -114,9 +122,10 @@ while (@stageId) {
   $number_results = 1;
   while ($next_index <= $number_results) {
     @data = &get_page;
-    &table_body;
+    &parse_entries;
   }
 }
+&write_entries;
 print OUT $table_footer;
 
 chomp(my $date = `date -u +%F`);
