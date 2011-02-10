@@ -10,7 +10,7 @@ open OUT, ">out.txt";
 binmode OUT, ":utf8";
 
 our $table_header = "{| border='1' cellspacing='0' class='wikitable sortable'
-! oeil link / tratten page !! forecasts !! stage reached !! legal basis !! stage !! name !! committee dossier !! rapporteur !! COM number !! monitored\n";
+! tratten page (oeil) !! forecasts !! stage reached !! legal basis !! stage !! name !! committee dossier !! rapporteur !! COM number !! monitored\n";
 our $table_footer = "|}\n";
 
 our @stageId = (100, 210, 235, 290, 300, 400, 500, 600, 610, 640, 700, 710, 720);
@@ -110,7 +110,7 @@ sub write_entries {
   @entries = sort { $a->{forecast} cmp $b->{forecast} } @entries;
   for (@entries) {
     print OUT "|-\n";
-    print OUT "| [$_->{url} $_->{refnum}] / [[$_->{refnum}]] || $_->{forecast} || $_->{stage_reached} || $_->{legal_basis} || $_->{stage} || $_->{name} || $_->{committee_dossier} || $_->{rapporteur} || $_->{com} || $_->{monitored}\n";
+    print OUT "| [[$_->{refnum}]] ([$_->{url} oeil]) || $_->{forecast} || $_->{stage_reached} || $_->{legal_basis} || $_->{stage} || $_->{name} || $_->{committee_dossier} || $_->{rapporteur} || $_->{com} || $_->{monitored}\n";
   }
 }
 
