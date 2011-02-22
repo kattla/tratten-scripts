@@ -34,6 +34,9 @@ print " [$uri oeil]";
   local $_ = $dossier->{title}; s/\s/+/g;
   print " [http://www.google.com/search?q=$_ google]";
 }
+if ($dossier->{committee_dossier}) {
+  print " [http://www.europarl.europa.eu/RegistreWeb/search/simple.htm?fulltext=",$dossier->{committee_dossier}," eprod]";
+}
 print "\n";
 for (@{ $dossier->{forecasts} }) {
   print "<br/>'''";
