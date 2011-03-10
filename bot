@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use MediaWiki::Bot;
+
+sub usage { print STDERR "USAGE:
+$0 forecasts <wikipage>
+$0 template <oeilurl> <wikipage>
+"; exit 1; }
+
+sub get_login_data {
+  open my $F, "< bot.account" or die;
+  chomp(my $user = <$F>);
+  chomp(my $pass = <$F>);
+  return { username => $user, password => $pass };
+}
+
+sub login {
+  return MediaWiki::Bot->new({
+    host => "euwiki.org",
+    path => "",
+    login_data  => &get_login_data,
+  });
+}
+
+my $op = shift or &usage;
+
+if ($op eq "forecasts") {
+  my $page = shift;
+  system "rm -f out.txt";
+  system "./trattify";
+  my $w = &login;
+  open my $F, "< out.txt";
+  binmode $F, ":utf8";
+  my $text;
+  { local $/ = undef; $text = <$F>; }
+  print "Updating page: $page\n";
+  $w->edit({
+    page => $page,
+    text => $text,
+  });
+  $w->logout();
+}
+elsif ($op eq "template") {
+  my $oeilurl = shift;
+  my $page = shift;
+  my $content;
+  {
+    open my $DATA, "./template-dossier-report '$oeilurl' |";
+    binmode $DATA, ":utf8";
+    local $/ = undef;
+    $content = <$DATA>;
+  }
+  my $w = &login;
+  print "Updating page: $page\n";
+  my $header = "<!-- Generated content begins here. Do not edit. -->";
+  my $footer = "<!-- End of generated content. -->";
+  $content = $header . "\n" . $content . "\n" . $footer . "\n";
+  my $old_content = $w->get_text($page);
+  if ($old_content) {
+    if ($old_content =~ /^(.*?)\Q$header\E.*?\Q$footer\E\n(.*?)$/s) {
+      $content = $1 . $content . $2;
+    } else {
+      print STDERR "Can't find generated content. Aborting.\n";
+      exit 1;
+    }
+  }
+  $w->edit({
+    page => $page,
+    text => $content,
+  });
+  $w->logout();
+}
+else { &usage; }
