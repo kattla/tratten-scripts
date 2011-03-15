@@ -61,8 +61,8 @@ elsif ($op eq "template") {
     if ($old_content =~ /^(.*?)\Q$header\E.*?\Q$footer\E\n(.*?)$/s) {
       $content = $1 . $content . $2;
     } else {
-      print STDERR "Can't find generated content. Aborting.\n";
-      exit 1;
+      $content = $content . "\n" . $old_content;
+      print "Page exists but no previously generated content found. Prepending.\n";
     }
   }
   $w->edit({
