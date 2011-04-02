@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+use strict;
+use 5.010;
+use Tratten::Dossier;
+use Tratten::Monitored;
+use Tratten::Committee;
+
+binmode STDOUT, ":utf8";
+# system "diff out.txt out_old.txt > out_diff.txt";
+
+open INFILE, "<out.txt";
+
+our @text;	
+our $text;
+our $oeil_url;
+our $wiki_page;
+sub calling_bot {
+  @text = <INFILE>;
+  $text = shift @text;
+  chomp $text;
+  while (@text) {
+    if ($text =~ m/(\[{2}?)(\w{3}?)(\W{1}?)(\d{4}?)(\W{1}?)(\d+)(\w??)(\]{2}?)/) {
+      $wiki_page = $2.$3.$4.$5.$6.$7;
+      if ($text =~ m/\]\] \(\[http:\/\/www\.europarl\.europa\.eu\/oeil\/file\.jsp\?id=(\d+)/) {
+        $oeil_url = "http://www.europarl.europa.eu/oeil/file.jsp?id=".$1;
+        system "./bot template '$oeil_url' '$wiki_page'";  
+#        system "./bot_dossier_committe_subpages pagename '$oeil_url' '$wiki_page'";
+#        print "$oeil_url"." "."$wiki_page"."\n";
+        }
+      }  
+    $text = shift @text;
+    chomp $text;
+   }
+}
+print "Starting total update...\n";
+&calling_bot;
+print "Done calling bot.\n";
+
