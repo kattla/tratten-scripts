@@ -1,0 +1,74 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Tratten::Dossier;
+use Tratten::Monitored;
+use Tratten::Committee;
+
+binmode STDOUT, ":utf8";
+
+my $uri = $ARGV[0];
+my $dossier;
+
+if ($Tratten::Monitored::uri{$uri}) { $dossier = &Tratten::Monitored::dossier($uri); }
+else {
+  my $page = &Tratten::Cache::URI($uri, expire_if => sub { time - $_[0]->{timestamp} > 10000 });
+  $dossier = Tratten::Dossier::parse($page);
+}
+
+my %comm;
+my $lead;
+
+for (@{ $dossier->{agents} }) {
+  $_->{committee} =~ /^(.+?)\s+\((.+)\)$/ or die;
+  my ($comm, $status) = ($1, $2);
+  my $abbr = Tratten::Committee::abbreviate($comm) or die;
+  if ($status =~ m/responsible/) { die if $lead; $lead = $abbr; }
+  unless ($_->{MEP} =~ /^\s*$/) { $comm{$abbr} = $_->{MEP}; }
+}
+print "<!-- Generated content begins here. Do not edit. -->\n";
+print "<big><big>'''", $dossier->{title}, "'''</big></big><br>";
+if ($dossier->{legal_basis}) {
+  local $_ = $dossier->{legal_basis};
+  s/(TFEU\s+0*(\d+)[-0-9a-z]*)/[[TFEU#Article_$2 | $1]]/g;
+  s/(TEU\s+0*(\d+)[-0-9a-z]*)/[[TEU#Article_$2 | $1]]/g;
+  s/(EP\s+0*(\d+)[-0-9a-z]*)/[[RoP#Rule_$2 | $1]]/g;
+  print "Legal Basis: $_, ";
+}
+if ($dossier->{monitor}) { print " [", $dossier->{monitor}->{log}, " change log]"; }
+print " [$uri oeil]";
+{
+  local $_ = $dossier->{title}; s/\s/+/g;
+  print " [http://www.google.com/search?q=$_" . "\+" . "\-" . "europarl.europa.eu" ." google]";
+}
+if ($dossier->{reference}) {
+  print " [http://www.europarl.europa.eu/RegistreWeb/search/simple.htm?fulltext=";
+  print substr($dossier->{reference},4);
+  print "(";
+  print substr($dossier->{reference},0,3);
+  print ") eprod]";
+}
+for (@{ $dossier->{forecasts} }) {
+  print "<br/>'''";
+  my $date = $_->{date};
+  if ($date =~ m#^(\d\d)/(\d\d)/(\d\d\d\d)$#) { $date = "$3-$2-$1"; }
+  print $date, "''' ", $_->{activity}, "\n";
+}
+if ($dossier->{committee_dossier}) {
+  local $_ = $dossier->{committee_dossier};
+  if (/^([A-Z]+)\/\d+\/\d+$/) {
+    $_ = "[http://www.europarl.europa.eu/activities/committees/workingDocsCom/comparlDossier.do?dossier=$_&body=$1&language=EN $_]";
+  }
+  print "<br/>Lead committee dossier $_";
+}
+print "\n{| border='1' cellspacing='0' class='wikitable'\n";
+print "! Function";
+for (sort keys %comm) {
+  print " !! [[", $dossier->{reference}, ($_ eq $lead) ? "/$_" : "/$_", "|$_]]";
+}
+print "\n|-\n| EP MEP rapporteur (lead)";
+for (sort keys %comm) { print " || ", ($_ eq $lead) ? $comm{$_} : "-"; }
+print "\n|-\n| EP MEP shadow rapporteur(s) (opinion)";
+for (sort keys %comm) { print " || ", ($_ ne $lead) ? $comm{$_} : "-"; }
+print "\n|}\n";
+print "<!-- End of generated content. -->";

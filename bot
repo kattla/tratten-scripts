@@ -27,6 +27,7 @@ my $op = shift or &usage;
 
 if ($op eq "forecasts") {
   my $page = shift;
+  system "cp out.txt out_old.txt";
   system "rm -f out.txt";
   system "./trattify";
   my $w = &login;
@@ -46,7 +47,7 @@ elsif ($op eq "template") {
   my $page = shift;
   my $content;
   {
-    open my $DATA, "./template-dossier-report '$oeilurl' |";
+    open my $DATA, "./ehjtemplate-dossier-report '$oeilurl' |";
     binmode $DATA, ":utf8";
     local $/ = undef;
     $content = <$DATA>;
@@ -55,11 +56,13 @@ elsif ($op eq "template") {
   print "Updating page: $page\n";
   my $header = "<!-- Generated content begins here. Do not edit. -->";
   my $footer = "<!-- End of generated content. -->";
-  $content = $header . "\n" . $content . "\n" . $footer . "\n";
   my $old_content = $w->get_text($page);
   if ($old_content) {
-    if ($old_content =~ /^(.*?)\Q$header\E.*?\Q$footer\E\n(.*?)$/s) {
-      $content = $1 . $content . $2;
+    if ($old_content =~ /^(.*?)\Q$header\E(.*)\Q$footer\E(.*?)$/s) {
+#      print $2;
+#      print "CONTENT+++++++++++\n$content";
+      $content = $1 . $content . $3;
+#      print "CONTENT AFTER APPEND*************\n$content";
     } else {
       $content = $content . "\n" . $old_content;
       print "Page exists but no previously generated content found. Prepending.\n";

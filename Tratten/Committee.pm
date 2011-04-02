@@ -43,6 +43,11 @@ $abbr{'Citizens\' Freedoms and Rights, Justice and Home Affairs'} = 'LIBE';
 $abbr{'Legal Affairs and Internal Market'} = 'JURI';
 $abbr{'Industry, External Trade, Research, Energy'} = 'ITRE';
 $abbr{'Parliament delegation to Conciliation Committee'} = 'CODE';
+$abbr{'Special committee on the financial, economic and social crisis'} = 'CRIS';
+$abbr{'Economic and Monetary Affairs, Industrial Policy'} = 'ECON'; 
+$abbr{'Regional Policy, Transport and Tourism'} = 'TRAN';
+$abbr{'Foreign Affairs, Human Rights, Common Security, Defense'} = 'AFET';
+$abbr{'Development and Cooperation'} = 'DEVE';
 
 sub abbreviate {
   return undef unless $_[0];
